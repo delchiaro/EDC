@@ -127,39 +127,17 @@ get_one_option (int optid, const struct my_option *opt, char *argument)
 
 #include "process_prepared_statement.c"
 
-struct EibtraceParameter
-{
-    char saddr[9];
-    char w_r_a;
-    double value;
-    int length; //??
-    int eis;
-};
 
-int prepared (int argc, char *argv[])
+
+int prepared ( char* user, char* pwd, char* ip, int porta, char* dbname, Energia energia)
 {
 
 
 
-
-  int opt_err;
-
-  MY_INIT (argv[0]);
-  load_defaults ("my", client_groups, &argc, &argv);
-
-  if ((opt_err = handle_options (&argc, &argv, my_opts, get_one_option)))
-    exit (opt_err);
 
   /* solicit password if necessary */
-  if (ask_password)
-    opt_password = get_tty_password (NULL);
-
-  /* get database name if present on command line */
-  if (argc > 0)
-  {
-    opt_db_name = argv[0];
-    --argc; ++argv;
-  }
+  
+  
 
   /* initialize client library */
   if (mysql_library_init (0, NULL, NULL))
@@ -188,19 +166,21 @@ int prepared (int argc, char *argv[])
 #endif
 #endif
 
-  /* connect to server */
-  if (mysql_real_connect (conn, opt_host_name, opt_user_name, opt_password,
-      opt_db_name, opt_port_num, opt_socket_name, opt_flags) == NULL)
+
+
+
+
+  if (mysql_real_connect (conn, ip, user, pwd, dbname, porta, "/var/run/mysqld/mysqld.sock" , "(null)") == NULL)
   {
     print_error (conn, "mysql_real_connect() failed");
     mysql_close (conn);
     exit (1);
   }
 
-  process_prepared_statements (conn);
-
+  process_prepared_statements (conn, energia);
+  
   /* disconnect from server, terminate client library */
   mysql_close (conn);
   mysql_library_end ();
-  exit (0);
+  return 0;
 }

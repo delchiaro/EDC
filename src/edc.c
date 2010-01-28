@@ -17,10 +17,14 @@
 #include <eibnetmux/enmx_lib.h>
 #include "mylib.h"
 
+int prepared ( char* user, char* pwd, char* ip, int porta, char* dbname, Energia energia);
+
+ // prepared( "root", "labdomvinci", "10.0.0.55", "3306", "konnex",);
+
 int main( int argc, char **argv )
 {
-    prepared(argc,argv);
-
+    Energia energia;
+    
     uint16_t                value_size;
     struct timeval          tv;
     struct tm               *ltime;
@@ -120,7 +124,9 @@ int main( int argc, char **argv )
     {
         spaces = floor( log10( total )) +1;
     }
-    while( total == -1 || count < total )
+
+   // while( total == -1 || count < total )
+    while(1)
     {
         buf = enmx_monitor( sock_con, 0xffff, buf, &buflen, &value_size );
         if( buf == NULL ) {
@@ -151,6 +157,7 @@ int main( int argc, char **argv )
         {
             count++;
             cemiframe = (CEMIFRAME *) buf;
+
             gettimeofday( &tv, NULL );
             ltime = localtime( &tv.tv_sec );
 
@@ -158,35 +165,41 @@ int main( int argc, char **argv )
             {
                 printf( "%*d: ", spaces, count );
             }
-            printf( "%04d/%02d/%02d %02d:%02d:%02d:%03d - ",
-                       ltime->tm_year + 1900, ltime->tm_mon +1, ltime->tm_mday,
-                       ltime->tm_hour, ltime->tm_min, ltime->tm_sec, (uint32_t)tv.tv_usec / 1000 );
-
-            printf( "%8s  ", knx_physical( cemiframe->saddr ));
-
-            if( cemiframe->apci & A_WRITE_VALUE_REQ )
-            {
-                printf( "W " );
-            } 
-            else if( cemiframe->apci & A_RESPONSE_VALUE_REQ )
-            {
-                printf( "A " );
-            }
-            else
-            {
-                printf( "R " );
-            }
-
-            printf( "%8s", (cemiframe->ntwrk & EIB_DAF_GROUP) ? knx_group( cemiframe->daddr ) : knx_physical( cemiframe->daddr ));
+            energia.data.day            = ltime->tm_mday;
+            energia.data.year           = ltime->tm_year + 1900;
+            energia.data.month          = ltime->tm_mon +1;
+            //energia.data.hour           = ltime->tm_hour;
+            //energia.data.minute         = ltime->tm_min;
             
+            //energia.data.neg            = 0;
+            //energia.data.second         = ltime->tm_sec;
+            //energia.data.second_part    = (uint32_t)tv.tv_usec / 1000;
+            //energia.data.time_type;
+
+            sprintf( energia.timestamp, "%02d:%02d:%02d:%03d", ltime->tm_hour, ltime->tm_min, ltime->tm_sec, (uint32_t)tv.tv_usec / 1000 );
+
+
+
+            sprintf( energia.mittente, "%8s  ", knx_physical( cemiframe->saddr ));
+
+
+            sprintf( energia.destinatario, "%8s", (cemiframe->ntwrk & EIB_DAF_GROUP) ? knx_group( cemiframe->daddr ) : knx_physical( cemiframe->daddr ));
+           
+            sprintf(energia.valore, "%s", hexdump( &cemiframe->apci, cemiframe->length, cemiframe->length ) );
+            //sprintf(energia.valore, "%s", hexdump( &cemiframe->apci, cemiframe->length, cemiframe->length ));
+            
+            /*
             if( cemiframe->apci & (A_WRITE_VALUE_REQ | A_RESPONSE_VALUE_REQ) )
             {
                 printf( " : " );
                 p_int = (uint32_t *)value;
                 p_real = (double *)value;
+
+                
                 switch( cemiframe->length )
                 {
                     case 1:     // EIS 1, 2, 7, 8
+                        
                         type = enmx_frame2value( 1, cemiframe, value );
                         printf( "%s | ", (*p_int == 0) ? "off" : "on" );
                         type = enmx_frame2value( 2, cemiframe, value );
@@ -196,10 +209,14 @@ int main( int argc, char **argv )
                         type = enmx_frame2value( 8, cemiframe, value );
                         printf( "%d", *p_int );
                         eis_types = "1, 2, 7, 8";
+                        
+
+                        sprintf(energia.valore, "%s", cemiframe )
                         break;
 
 
                     case 2:     // 6, 13, 14
+                        
                         type = enmx_frame2value( 6, cemiframe, value );
                         printf( "%d%% | %d", *p_int * 100 / 255, *p_int );
                         type = enmx_frame2value( 13, cemiframe, value );
@@ -212,6 +229,7 @@ int main( int argc, char **argv )
                         {
                             eis_types = "6, 14";
                         }
+                        
                         break;
 
 
@@ -256,22 +274,12 @@ int main( int argc, char **argv )
                         eis_types = "15";
                         break;
                 }
-
-
-                if( cemiframe->length == 1 )
-                {
-                    printf( " (%s", hexdump( &cemiframe->apci, 1, 1 ));
-                }
-                else
-                {
-                    printf( " (%s", hexdump( (unsigned char *)(&cemiframe->apci) +1, cemiframe->length -1, 1 ));
-                }
-                printf( " - eis types: %s)", eis_types );
-
+                
             }
-
-            printf( "\n" );
+            */
+           
         }
+         prepared( "root", "labdomvinci", "10.0.0.55", 3306, "konnex", energia);
     }
 
 

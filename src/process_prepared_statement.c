@@ -1,21 +1,27 @@
 /* #@ _INSERT_RECORDS_ */
+
+#include <mysql/mysql.h>
+
 static void print_stmt_error (MYSQL_STMT *stmt, char *message);
 static void print_error(MYSQL *conn, char *msg);
 //inseriti io.. dovremo usare dei .h ^^
+ 
 
-static void
-insert_rows (MYSQL_STMT *stmt)
+typedef struct
 {
-char          *stmt_str = "INSERT INTO t (i,f,c,dt) VALUES(?,?,?,?)";
-MYSQL_BIND    param[4];
-int           my_int;
-float         my_float;
-char          my_str[26]; /* ctime() returns 26-character string */
-MYSQL_TIME    my_datetime;
-unsigned long my_str_length;
-time_t        clock;
-struct tm     *cur_time;
-int           i;
+    MYSQL_TIME data;
+    char timestamp[16];
+    char mittente[10];
+    char destinatario[10];
+    char valore[16];
+} Energia;
+
+static void insert_energia(MYSQL_STMT *stmt, Energia toWrite )
+{
+char          *stmt_str = "INSERT INTO energia (Data,Timestamp,Mittente,Destinatario,Valore) VALUES(?,?,?,?,?)";
+//                                        DATA  CHAR 15   CHAR 9    CHAR 9      char 15
+
+   MYSQL_BIND    param[5];
 
   printf ("Inserting records...\n");
 
@@ -25,80 +31,49 @@ int           i;
     return;
   }
 
-  /*
-   * zero the parameter structures, and then perform all parameter
-   * initialization that is constant and does not change for each row
-   */
 
-  memset ((void *) param, 0, sizeof (param));
+  memset ((void *) param, 0, sizeof (param)); //setto a 0 tutti i bit
 
-  /* set up INT parameter */
 
-  param[0].buffer_type = MYSQL_TYPE_LONG;
-  param[0].buffer = (void *) &my_int;
+  //definisco il tipo del campo, un puntatore al valore da scrivere nel campo e altro.
+  param[0].buffer_type = MYSQL_TYPE_DATE;
+  param[0].buffer = (void *) &toWrite.data;
   param[0].is_unsigned = 0;
   param[0].is_null = 0;
-  /* buffer_length, length need not be set */
 
-  /* set up FLOAT parameter */
-
-  param[1].buffer_type = MYSQL_TYPE_FLOAT;
-  param[1].buffer = (void *) &my_float;
+  param[1].buffer_type = MYSQL_TYPE_STRING;
+  param[1].buffer = (void *) toWrite.timestamp;
+  param[1].buffer_length = strlen(toWrite.timestamp);
   param[1].is_null = 0;
-  /* is_unsigned, buffer_length, length need not be set */
-
-  /* set up CHAR parameter */
 
   param[2].buffer_type = MYSQL_TYPE_STRING;
-  param[2].buffer = (void *) my_str;
-  param[2].buffer_length = sizeof (my_str);
+  param[2].buffer = (void *) toWrite.mittente;
+  param[2].buffer_length = strlen(toWrite.mittente);
   param[2].is_null = 0;
-  /* is_unsigned need not be set, length is set later */
 
-  /* set up DATETIME parameter */
 
-  param[3].buffer_type = MYSQL_TYPE_DATETIME;
-  param[3].buffer = (void *) &my_datetime;
+  param[3].buffer_type = MYSQL_TYPE_STRING;
+  param[3].buffer = (void *) &toWrite.destinatario;
+  param[3].buffer_length = strlen(toWrite.destinatario);
   param[3].is_null = 0;
-  /* is_unsigned, buffer_length, length need not be set */
 
-  if (mysql_stmt_bind_param (stmt, param) != 0)
+  param[4].buffer_type = MYSQL_TYPE_STRING;
+  param[4].buffer = (void *) &toWrite.valore;
+  param[4].buffer_length = strlen(toWrite.valore);
+  param[4].is_null = 0;
+
+
+
+  
+  if (mysql_stmt_bind_param (stmt, param) != 0)// inserisco i parametri nello statment al posto dei '?'
   {
     print_stmt_error (stmt, "Could not bind parameters for INSERT");
     return;
   }
 
-  for (i = 1; i <= 5; i++)
-  {
-    printf ("Inserting record %d...\n", i);
 
-    (void) time (&clock); /* get current time */
+  printf ("Inserting record in statment 'stmt' success\n");
 
-    /* set the variables that are associated with each parameter */
-
-    /* param[0]: set my_int value */
-    my_int = i;
-
-    /* param[1]: set my_float value */
-    my_float = (float) i;
-
-    /* param[2]: set my_str to current ctime() string value */
-    /* and set length to point to var that indicates my_str length */
-    (void) strcpy (my_str, ctime (&clock));
-    my_str[24] = '\0';  /* chop off trailing newline */
-    my_str_length = strlen (my_str);
-    param[2].length = &my_str_length;
-
-    /* param[3]: set my_datetime to current date and time components */
-    cur_time = localtime (&clock);
-    my_datetime.year = cur_time->tm_year + 1900;
-    my_datetime.month = cur_time->tm_mon + 1;
-    my_datetime.day = cur_time->tm_mday;
-    my_datetime.hour = cur_time->tm_hour;
-    my_datetime.minute = cur_time->tm_min;
-    my_datetime.second = cur_time->tm_sec;
-    my_datetime.second_part = 0;
-    my_datetime.neg = 0;
 
     if (mysql_stmt_execute (stmt) != 0)
     {
@@ -106,15 +81,15 @@ int           i;
       return;
     }
 
-    sleep (1);  /* pause briefly (to let the time change) */
-  }
+  printf ("Statment execution success: record inserting in table success!\n");
+
+
 }
 /* #@ _INSERT_RECORDS_ */
 
 
 /* #@ _SELECT_RECORDS_ */
-static void
-select_rows (MYSQL_STMT *stmt)
+static void select_rows (MYSQL_STMT *stmt)
 {
 char          *stmt_str = "SELECT i, f, c, dt FROM t";
 MYSQL_BIND    param[4];
@@ -226,11 +201,10 @@ my_bool       is_null[4];
 /* #@ _SELECT_RECORDS_ */
 
 /* #@ _PROCESS_PREPARED_STATEMENTS_ */
-void
-process_prepared_statements (MYSQL *conn)
+void process_prepared_statements (MYSQL *conn, Energia energia)
 {
 MYSQL_STMT *stmt;
-char       *use_stmt = "USE sampdb";
+char       *use_stmt = "USE konnex";
 char       *drop_stmt = "DROP TABLE IF EXISTS t";
 char       *create_stmt =
   "CREATE TABLE t (i INT, f FLOAT, c CHAR(24), dt DATETIME)";
@@ -253,8 +227,16 @@ char       *create_stmt =
   }
 
   /* insert and retrieve some records */
-  insert_rows (stmt);
-  select_rows (stmt);
+
+/*
+  Energia ene;
+  strcpy(ene.destinatario,"dest1");
+  strcpy(ene.mittente, "mit");
+  strcpy(ene.timestamp, "01:01 tstamp");
+  strcpy(ene.valore, "value");
+*/
+  insert_energia (stmt, energia);
+  //select_rows (stmt);
 
   mysql_stmt_close (stmt);       /* deallocate statement handler */
 }
