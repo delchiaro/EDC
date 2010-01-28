@@ -1,0 +1,139 @@
+/*
+ * eibnetmux - eibnet/ip multiplexer
+ * Copyright (C) 2006-2009 Urs Zurbuchen <going_nuts@users.sourceforge.net>
+ * 
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 3 of the License, or
+ * (at your option) any later version.
+ * 
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ * 
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ *
+ */
+
+ /*!
+ * \mainpage 
+ * 
+ * \image html eibnetmux_logo.png
+ *
+ * \section intro Introduction
+ *
+ * For latest information please visit
+ * http://eibnetmux.sourceforge.net
+ *
+ * EIBnetmux is an open source software project for domotic control.
+ *
+ * EIBnetmux extends the IP-reach of the KNX bus and adds support for multiple concurrent clients
+ * to the standard IP Interface N148/21.
+ *
+ * In addition to the standard EIBnet/IP protocol, it features a very simple,
+ * TCP/IP socket-based protocol which allows applications to easily retrieve and set data from/on the bus.
+ * This empowers developers to focus on their applications and implement these great and long-wished for
+ * features without having to implement the rather complex, not very well documented, timing critical,
+ * UDP-based EIBnet/IP protocol.
+ *
+ * This document is intended as a programmer's reference to the
+ * EIBnetmux C API. It has been generated from the source
+ * code by <a href="http://www.doxygen.org" target="_blank">Doxygen</a>, a great tool created by Dimitri van Heesch.
+ */
+
+/*!
+ * \page copyleft Copyright Statement
+ *
+ * EIBnetmux is
+ * Copyright (C) 2006-2009 Urs Zurbuchen <going_nuts@users.sourceforge.net>
+ * 
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 3 of the License, or
+ * (at your option) any later version.
+ * 
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ * 
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ *
+ */
+ 
+/*
+ * groups / modules
+ */
+/* ====================================== Setup ==================================== */
+/*!
+ * \defgroup xgSetup Setup API
+ *
+ * \brief Library initialisation and connection setup.
+ *
+ * This API supports the following features:
+ *    - Library initialisation
+ *    - Connection management
+ *    - Searching for EIBnetmux servers
+ */
+
+/* ==================================== Bus access ================================= */
+/*!
+ * \defgroup xgBus Bus access API
+ *
+ * \brief Functions to access KNX bus via EIBnetmux.
+ *
+ * This API supports the following features:
+ *    - Reading KNX groups
+ *    - Writing KNX groups
+ *    - Monitoring KNX groups
+ *    - Authentication
+ *    - Layer 7 connection-less/connection-oriented functions
+ */
+
+/* =============================== Data conversions ================================ */
+/*!
+ * \defgroup xgUtil Utility functions for data conversions API
+ *
+ * \brief Functions to convert KNX-specific data types to/from C-type variables.
+ *
+ * This API supports the following features:
+ *    - Convert to/from KNX data streams
+ *    - Convert group adress x/y/z to/from library-internal format
+ */
+
+/* ================================= Error handling ================================ */
+/*!
+ * \defgroup xgError Error handling API
+ *
+ * \brief Retrieve information about most recent error.
+ *
+ * This API supports the following features:
+ *    - Get error code
+ *    - Get error message
+ */
+
+/* =================================== Management ================================== */
+/*!
+ * \defgroup xgMgmt Management API
+ *
+ * \brief EIBnetmux server management API.
+ *
+ * This API supports the following features:
+ *    - EIBnet/IP client connection management
+ *    - Log level management
+ *    - Status
+ */
+
+/* =============================== Helper functions ================================ */
+/*!
+ * \defgroup xgHelper Helper functions for various tasks
+ *
+ * \brief Functions helping in maintaining and checking internal structures
+ *
+ */
+

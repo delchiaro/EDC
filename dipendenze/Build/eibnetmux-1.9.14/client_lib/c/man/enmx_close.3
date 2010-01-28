@@ -1,0 +1,28 @@
+.\" Copyright (C) 2008 Urs Zurbuchen
+.\"
+.TH ENMX_CLOSE 3  2008-02-10 "" "eibnetmux Client Library"
+.SH NAME
+enmx_close \- close connection to eibnetmux
+.SH SYNOPSIS
+.nf
+.B #include <enmx_lib.h>
+.sp
+.BI "void enmx_close( ENMX_HANDLE " handle );
+.fi
+.SH DESCRIPTION
+The
+.BR enmx_close ()
+function closes a connection to an eibnetmux server previously established by
+.BR enmx_open (3).
+
+.SH "RETURN VALUE"
+None
+
+.SH "SEE ALSO"
+.BR enmx_open (3),
+.BR enmx_read (3),
+.BR enmx_write (3),
+.BR enmx_monitor (3)
+
+.SH AUTHOR
+This manual page was written by Urs Zurbuchen <going_nuts@users.sourceforge.net>.

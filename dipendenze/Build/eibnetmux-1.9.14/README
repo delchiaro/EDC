@@ -1,0 +1,113 @@
+Introduction
+============
+EIB stands for "European Installation Bus" and is a wide-spread domotic control system.
+It has become a world-wide standard and is also known as KNX. The standards body is the Konnex association.
+
+The EIBnet/IP protocol (also known as KNXnet/IP) has been defined to transport EIB requests
+over an IP-based network, with several companies delivering EIB-to-IP gateways implementing it.
+Among these products is the Siemens IP Interface N148/21. At least this device, but probably
+others as well, is limited to one concurrent connection.
+
+The EIB programming tool ETS uses one connection. A visualisation software requires a second one.
+And a domotic control solution obviously also needs to communicate on the bus. I trust you see the
+problem. :-)
+
+Enter EIBnetmux. And this issue is resolved.
+
+EIBnetmux extends the IP-reach of the KNX bus and supports multiple concurrent clients. In addition,
+it features a very simple, TCP/IP socket-based protocol which allows applications to easily retrieve
+and set data from/on the bus. This empowers developers to focus on their applications and implement
+these great and long-wished for features without having to implement the rather complex, not very well
+documented, timing critical, UDP-based EIBnet/IP protocol.
+
+In particular, web application developers will like the possibility to use a simple scripting language
+such as PHP to gain access to the KNX bus. Client libraries for PHP and C are included and ready to use.
+
+Configuration
+=============
+EIBnetmux requires no complicated configuration. All you have to do is to specify the correct
+command line parameters.
+
+Usage is: eibnetmux [options] hostname[:port]
+			-s --eib_server [port]
+			    Activate the EIBnet/IP server for standard applications like ETS, etc.
+			    By default, the port is set to 3671, the standard EIBnet/IP port.
+			-t --tcp_server [port]
+			    Activate the TCP socket server for eibnetmux clients. The default port is 4390.
+			-u --unix_server [path]
+			    Activate the UNIX socket server for eibnetmux clients. The default path is /tmp/eibnetmux.
+			-e --eibd_server [port]
+			    Activate eibd server
+			-l, --log_level
+			    Set the log level. Please refer to section LOGGING for possible values.
+			-L, --log_dest
+			    Define where log information is sent to. Destination can be one of:
+			        * udp:<host:port>
+			          Send the unadorned log messages to host at port port, where a log receiver must be running.
+			        * file:<path>
+			          Dump all log messages, including timestamps, to the named file.
+			        * syslog:<facility>
+			          Send all log messages to the syslog service.
+			-r, --log_level
+			    Set log levels that go to ring log. Please refer to section LOGGING for possible values.
+			-R, --ring_size <kilobytes>
+				Set size of debug ring log buffer.
+			-d, --daemon
+			    Run eibnetmux in daemon mode.
+			-i, --user <username>
+			    Run eibnetmux as user <username>.
+			-g, --group <groupname>
+			    Run eibnetmux as group <groupname>>.
+			-p, --pidfile <path>
+			    If set, eibnetmux writes a file after startup containing its process id. This can be
+			    used to tell the server to shutdown if it is running in daemon mode.
+			-A, --address <ip address>
+			    The EIBnet/IP protocol requires that the sender puts his own IP address
+			    in some of the packets. While this is a severe problem in NATed networks,
+			    it is also a challenge on a Unix system which can have multiple network
+			    interfaces and addresses. By default, EIBnetmux asks the Linux kernel and its
+			    routing table for the correct address to use. However, if you, for any
+			    reason, want to overwrite this behaviour, you can specify the address to use
+			    with this option. Please note that this address will be used for any
+			    connection, disregarding any differing routing. So, be careful! The parameter
+			    <ip address> must be a numeric IP address (format aaa.bbb.ccc.ddd).
+
+Logging
+=======
+Log output of eibnetmux can be controlled very precisely. The log level is in fact a bit mask with
+each bit selecting a specific log facility. Using the following table, calculate the
+correct logging level by simply adding their associated values.
+
+	info					   1
+	verbose					   2
+	warning					   4
+	error					   8
+	critical				  16
+	fatal					  32
+	user					  64
+	debug					 128
+	trace client			 256
+	trace server			 512
+	trace socketserver		1024
+	trace eibd				2048
+
+Client libraries
+================
+To ease development of applications accessing the KNX bus, EIBnetmux features a simple client
+interface. The client-side of the interface has already been implemented for you and is provided
+in two libraries:
+    * C
+    * PHP
+
+The following pseudo-code demonstrates the simpleness of the interface. The example, by itself,
+is pretty stupid. It would take quite long to finish, as most of the read operations wait for a
+timeout (assuming you have used only a fraction of the possible KNX address space - if otherwise,
+there are probably more suitable options available to you than home-grown open source software).
+
+	open connection to EIBnetmux
+	groupaddress = 1
+	while groupaddress < 32768
+	  read value of group from bus
+	  display value
+	end while
+	close connection

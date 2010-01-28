@@ -1,0 +1,63 @@
+.\" Copyright (C) 2008 Urs Zurbuchen
+.\"
+.TH ENMX_GETERROR 3  2008-02-10 "" "eibnetmux Client Library"
+.SH NAME
+enmx_geterror \- get error code for last operation with eibnetmux
+.SH SYNOPSIS
+.nf
+.B #include <enmx_lib.h>
+.sp
+.BI "int enmx_geterror( ENMX_HANDLE " handle );
+.sp
+.BI "char * enmx_errormessage( ENMX_HANDLE " handle );
+.fi
+.SH DESCRIPTION
+The
+.BR enmx_geterror ()
+function returns the error code of the last operation performed
+with eibnetmux. \fIhandle\fP is a connection handle previously returned by
+.BR enmx_open (3).
+
+.BR enmx_errormessage ()
+returns an english text message describung the current error code
+for the connection identified by \fIhandle\fP.
+
+.SH "ERRORS"
+.TP
+.B ENMX_NO_ERROR
+Last operation executed succesfully.
+.TP
+.B ENMX_COMMUNICATION
+Error when communicating with eibnetmux.
+.TP
+.B E_SERVER_ABORTED
+Server closed connection
+.TP
+.B E_UNKNOWN_GROUP
+Unknown group
+.TP
+.B E_INTERNAL
+Internal error
+.TP
+.B E_NO_MEMORY
+Out of memory
+.TP
+.B E_TIMEOUT
+Timeout while sending/receiving
+.TP
+.B E_WRONG_USAGE
+Connection was already used for different command
+.TP
+.B E_NO_CONNECTION
+Invalid connection handle
+
+
+.SH "SEE ALSO"
+.BR enmx_open (3),
+.BR enmx_close (3),
+.BR enmx_read (3),
+.BR enmx_write (3),
+.BR enmx_monitor (3)
+
+.SH AUTHOR
+This manual page was written by Urs Zurbuchen <going_nuts@users.sourceforge.net>.

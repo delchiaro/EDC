@@ -1,0 +1,12 @@
+2008.05.17  v1.3.2
+            eibnetmux 1.4.2
+            client lib c 0.6.2
+2008.05.25  v1.4.6
+2008.06.15  v1.5
+...
+2009.03.29	v1.9
+2009.04.26  v1.9.5
+			configure: check for zLogger using PKG_CHECK_MODULES
+2009.05.23	Removed $Id CVS-keywords from sources
+2009.09.01	v1.9.11
+			Added webmon

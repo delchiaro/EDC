@@ -1,0 +1,35 @@
+Installation
+============
+Once you have unpacked the package in a directory of your choice, go there and run the following:
+
+	./configure [options] && make && make install
+
+The following special options are available for configure:
+	--with-plugins			    zLogger's functionality can be extended with plugins. Third parties can
+								develop new appenders or format handlers.
+								With this option you can first, activate building of the included plugins,
+								and second, specify the location where the plugins are installed.
+								By default, plugins are built and the target directory is
+								/usr/lib/zlogger/plugins/<version>
+	--disable-pth-plugins		zLogger ships with a small set of plugins. Some of them re-implement the
+								same functionality as some of the built-in appenders but with a twist.
+								Instead of calling standard system functions they integrate with PTH,
+								The GNU Portable Threads (see http://www.gnu.org/software/pth/).
+								If PTH is not installed on the system, these plugins are not built.
+								If PTH is installed but you do not want the plugins, the use this option
+								to suppress their building.
+
+If you want to compile the samples. You need to have zLogger installed for this to work.
+
+	cd samples
+	./configure && make
+
+For Gentoo users:
+	An ebuild is available from the downloads section of the zLogger project.
+	See http://sourceforge.net/project/showfiles.php?group_id=253638
+
+
+Requirements
+============
+zLogger does not have any special requirements beyond a basic Unix plattform. It has been tested with GLIBC 
+but not UCLIBC.

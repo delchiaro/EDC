@@ -1,0 +1,89 @@
+.\" Copyright (C) 2008 Urs Zurbuchen
+.\"
+.TH ENMX_READ 3  2008-02-10 "" "eibnetmux Client Library"
+.SH NAME
+enmx_read \- read the value of a KNX group from eibnetmux
+.SH SYNOPSIS
+.nf
+.B #include <enmx_lib.h>
+.sp
+.BI "unsigned char * enmx_read( ENMX_HANDLE " "handle, " "uint16_t " "knxaddress, " "uint16_t *" "length " );
+.fi
+.SH DESCRIPTION
+The
+.BR enmx_read ()
+function retrieves the value of a KNX group from the bus.
+\fIhandle\fP is a connection handle previously returned by
+.BR enmx_open (3).
+The connection must not have been used with any other call
+of the eibnetmux library other than
+.BR enmx_read ().
+
+The address of the requested group is encoded in \fIknxaddress\fP
+in the form
+.B 0mmm msss gggg gggg
+where
+.RS
+.PD 0
+.TP
+.BR m " - main group"
+.TP
+.BR s " - sub group"
+.TP
+.BR g " - group"
+.PD
+.RE
+\fIlength\fP will receive the size of the returned data.
+
+.SH "RETURN VALUE"
+.BR enmx_read ()
+returns a pointer to the received data or NULL upon error. The buffer is allocated
+from the heap and must be freed by the caller when it is no longer used.
+The data is returned as received from the bus with no interpretation performed.
+To use the data, the calling function must know the EIS type of the group
+and convert the data accordingly.
+
+In case of an error, use
+.BR enmx_geterror (3)
+to retrieve the error cause.
+
+.SH "ERRORS"
+.TP
+.B ENMX_COMMUNICATION
+Error when communicating with eibnetmux.
+.TP
+.B E_SERVER_ABORTED
+Server closed connection
+.TP
+.B E_UNKNOWN_GROUP
+Unknown group
+.TP
+.B E_INTERNAL
+Internal error
+.TP
+.B E_NO_MEMORY
+Out of memory
+.TP
+.B E_TIMEOUT
+Timeout while sending/receiving
+.TP
+.B E_WRONG_USAGE
+Connection was already used for different command
+.TP
+.B E_NO_CONNECTION
+Invalid connection handle
+
+.SH NOTES
+You are responsible to free the result buffer returned by
+.BR enmx_read ().
+
+.SH "SEE ALSO"
+.BR enmx_open (3),
+.BR enmx_close (3),
+.BR enmx_read (3),
+.BR enmx_write (3),
+.BR enmx_geterror (3),
+.BR enmx_monitor (3)
+
+.SH AUTHOR
+This manual page was written by Urs Zurbuchen <going_nuts@users.sourceforge.net>.

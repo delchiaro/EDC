@@ -1,0 +1,23 @@
+-saddr (stringa di 8 caratteri)
+-apci  (carattere 'W' o 'A' o 'R')
+-value  (valore del pacchetto convertito)
+-length (??? non è lenght..)
+-eis	(eis del pacchetto)
+
+
+
+
+typedef struct __attribute__((packed)) 
+{
+        uint8_t  code;
+        uint8_t  zero;
+        uint8_t  ctrl;
+        uint8_t  ntwrk;
+        uint16_t saddr; //OK
+        uint16_t daddr;
+        uint8_t  length; //OK
+        uint8_t  tpci;
+        uint8_t  apci; //OK
+        uint8_t  data[16]; // OK
+} CEMIFRAME;
+

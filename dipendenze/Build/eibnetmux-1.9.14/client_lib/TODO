@@ -1,0 +1,25 @@
+- python library (pythondoc ?) 
+
+- client api documentation
+						   C  P  Y					(C=C library, P = PHP, Y = Python)
+	connection management
+		version            x  -  -                 get API version
+		key exchange       x                       request key exchange using Diffie-Hellman-Merkle algorithm
+		diffie-hellman     x                       receive clients DHM public value (Yc)
+		authenticate       x  x                    authentication
+		                   x  -                    authentication with encrypted password
+		close              x  x                    close connection to eibnetmux
+	bus access
+		read               x  x                    value is read from knx group address and returned
+		read once          x  -                    value is read from knx group address and returned, close connection after returning result
+		write              x  x                    value is sent to knx group address
+		write once         x  -                    value is sent to knx group address, close connection after sending
+		monitor            x  -                    all requests addressed to masked knx group address are forwarded
+ 	system management
+		connect/disconnect -  x                    connect/disconnect eibnet/ip client to/from remote server
+		log level          -  x                    set new logging level
+		status             -  x                    get status
+
+kill connection -> add to list of ip address blocks
+edit security settings - all changes are temporary (user authorisations? ip address blocks)
+reload security file

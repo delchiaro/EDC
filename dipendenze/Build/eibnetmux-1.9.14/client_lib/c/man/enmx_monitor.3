@@ -1,0 +1,119 @@
+.\" Copyright (C) 2008 Urs Zurbuchen
+.\"
+.TH ENMX_MONITOR 3  2008-02-10 "" "eibnetmux Client Library"
+.SH NAME
+enmx_monitor \- monitor packets sent to KNX groups
+.SH SYNOPSIS
+.nf
+.B #include <enmx_lib.h>
+.sp
+.BI "unsigned char * enmx_monitor( ENMX_HANDLE " "handle, " "uint16_t " "mask, " "unsigned char *" "buf, " "uint16_t *" "buflen, " "uint16_t *" "length " );
+.fi
+.SH DESCRIPTION
+The
+.BR enmx_monitor ()
+function instructs eibnetmux to return the next request addressed
+to any of the KNX groups in \fImask\fP.
+
+\fIhandle\fP is a connection handle previously returned by
+.BR enmx_open (3).
+The connection must not have been used with any other call
+of the eibnetmux library other than
+.BR enmx_monitor ().
+
+The address of the requested groups is encoded in \fIknxaddress\fP
+in the form
+.BR "0mmm msss gggg gggg" .
+A request is returned if the bit-wise AND of the target group address
+and the mask is not 0. The bits are encoded as follows:
+.RS
+.PD 0
+.TP
+.BR m " - main group"
+.TP
+.BR s " - sub group"
+.TP
+.BR g " - group"
+.PD
+.RE
+\fIbuf\fP is a pointer to a pre-allocated buffer which will receive the 
+data transmitted on the bus. Its current length is specified in the
+value pointed to by \fIbuflen\fP. If the buffer is too small to hold all
+data, it is enlarged and the value pointed to by \fIbuflen\fP is updated
+with the new size.
+
+In any case, \fIlength\fP points to a variable which will receive the size
+of the returned data (which may be less than the buffer size).
+
+.SH "RETURN VALUE"
+.BR enmx_monitor ()
+returns a pointer to the received data or NULL upon error.
+Unlike 
+.BR enmx_read (3),
+the buffer contains the full EIB frame including sender and receiver
+addresses and the data as received from the bus with no interpretation performed.
+To use the data, the calling function must know the format of the EIB frame and
+the EIS type of the addressed group and convert the data accordingly.
+
+In case of an error, use
+.BR enmx_geterror (3)
+to retrieve the error cause.
+
+.SH "ERRORS"
+.TP
+.B ENMX_COMMUNICATION
+Error when communicating with eibnetmux.
+.TP
+.B E_SERVER_ABORTED
+Server closed connection
+.TP
+.B E_UNKNOWN_GROUP
+Unknown group
+.TP
+.B E_INTERNAL
+Internal error
+.TP
+.B E_NO_MEMORY
+Out of memory
+.TP
+.B E_TIMEOUT
+Timeout while sending/receiving
+.TP
+.B E_WRONG_USAGE
+Connection was already used for different command
+.TP
+.B E_NO_CONNECTION
+Invalid connection handle
+
+.SH "EIB FRAME"
+The EIB frame returned by
+.BR enmx_monitor (
+is defined as follows:
+
+struct __attribute__((packed)) {
+        uint8_t  code;
+        uint8_t  zero;
+        uint8_t  ctrl;
+        uint8_t  ntwrk;
+        uint16_t saddr;              // source address
+        uint16_t daddr;              // destination address
+        uint8_t  length;
+        uint8_t  tpci;
+        uint8_t  apci;
+        uint8_t  data[16];
+};
+
+.SH NOTES
+You are responsible to free the result buffer returned by
+.BR enmx_monitor ().
+
+.SH "SEE ALSO"
+.BR enmx_open (3),
+.BR enmx_close (3),
+.BR enmx_read (3),
+.BR enmx_write (3),
+.BR enmx_geterror (3),
+.BR enmx_monitor (3)
+
+.SH AUTHOR
+This manual page was written by Urs Zurbuchen <going_nuts@users.sourceforge.net>.

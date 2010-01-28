@@ -1,0 +1,53 @@
+Introduction
+============
+zLog is simple & efficient logging library for C with support for multiple appenders/formats,
+including ring buffer for debug messages.
+
+Structure
+=========
+There are three basic objects in zLog:
+	logger		Specifies which messages are logged to which destination.
+				An application may have more than one logger.
+	format		Specifies the final layout of the log message.
+				Can include various information such as current date/time,
+				the message id, the logger's name, and the message itself.
+	appender	Sends a log message to a specific destination.
+				There are appenders for log files, syslog, UDP receivers.
+				Additional appenders can easily be included as plugins.
+
+The main object is the logger which can include multiple appenders,
+each of which can have its own format. This results in the following hierarchy:
+
+	logger
+		appender 1
+			format
+		appender 2
+			format
+		appender 3
+			format
+
+Using zLog in an application
+============================
+An application wanting to log its activities opens one or more loggers:
+
+	logMain = zlogLoggerCreate( "main", loglevels );
+	log_appender = zlogAppenderSimple( "syslog", log_destination_and_params );
+	if( zlogLoggerAddAppender( logMain, log_appender ) != 0 )
+    	error in setting up logger
+
+Creating a log entry:
+
+	zlog( logMain, level, msgid, "Here goes the %s message, including parameters", "log" );
+
+Notes
+=====
+The logger name is pre-defined by the application developer. It can be used in log messages.
+If your application has multiple modules, instantiate multiple loggers, one per module,
+with individual names.
+
+All these loggers can use the same appender(s).
+
+Each logger can act on different log levels, allowing different verbosity per module.
+
+Different appenders can also act on different log levels. For example, you can have
+a local log file and send only error messages directly to a central syslog.

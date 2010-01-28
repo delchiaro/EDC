@@ -1,0 +1,15 @@
+2006.12.02  automated ebuild creation
+            Switched build process to automake && autoconf
+2008.03.04  support for named socket client connections (C & PHP)
+2008.03.18  enhancement: added support for authentication (C & PHP)
+2008.03.25  enhancement: added support for encrypted authentication (C)
+2008.05.18  made authentication support optional (--enable-authentication), does not require xyssl by default
+2008.05.22  bugfix: enmx_auth.c & enmx_pth_auth.c didn't compile
+2008.06.10  started new style C library: PTH support and standard mode combined, selected by enmx_init()
+2008.07.16  enhancement: new C & PHP client libraries with API documentation
+2008.07.21  bugfix: authentication didn't work for PHP
+2009.04.26	enhancement: added layer 7 api for c
+2009.05.22	bugfix: made gcc 4.3.2-r3 p1.6, pie-10.1.5 on PPC happy
+2009.05.23	Removed $Id CVS-keywords from sources
+2009.06.03  Changed copyright notice (date, email address)
+2009.08.31  xyssl replaced by polarssl (www.polarssl.org)

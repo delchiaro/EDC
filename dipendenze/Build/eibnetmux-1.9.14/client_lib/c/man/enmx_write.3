@@ -1,0 +1,85 @@
+.\" Copyright (C) 2008 Urs Zurbuchen
+.\"
+.TH ENMX_WRITE 3  2008-02-10 "" "eibnetmux Client Library"
+.SH NAME
+enmx_write \- write a value to a KNX group using eibnetmux
+.SH SYNOPSIS
+.nf
+.B #include <enmx_lib.h>
+.sp
+.BI "int enmx_write( ENMX_HANDLE " "handle, " "uint16_t " "knxaddress, " "uint16_t " "length, " "unsigned char *" value );
+.fi
+.SH DESCRIPTION
+The
+.BR enmx_write ()
+function sets the value of a KNX group. 
+\fIhandle\fP is a connection handle previously returned by
+.BR enmx_open (3).
+The connection must not have been used with any other call
+of the eibnetmux library other than
+.BR enmx_write ().
+
+The address of the targeted group is encoded in \fIknxaddress\fP
+in the form
+.B 0mmm msss gggg gggg
+where
+.RS
+.PD 0
+.TP
+.BR m " - main group"
+.TP
+.BR s " - sub group"
+.TP
+.BR g " - group"
+.PD
+.RE
+\fIlength\fP defines the size of the value in bytes.
+Finally, \fIvalue\fP is a pointer to the byte stream making up the new value.
+
+.BR enmx_write ()
+does no interpretation of \fIvalue\fP. A caller must know the EIS type of the targeted
+KNX group and format the value accordingly.
+
+.SH "RETURN VALUE"
+.BR enmx_write ()
+returns a 0 on success, -255 if \fIhandle\fP is invalid, or -1 on any other failure.
+Use
+.BR enmx_geterror (3)
+to retrieve the error cause.
+
+.SH "ERRORS"
+.TP
+.B ENMX_COMMUNICATION
+Error when communicating with eibnetmux.
+.TP
+.B E_SERVER_ABORTED
+Server closed connection
+.TP
+.B E_UNKNOWN_GROUP
+Unknown group
+.TP
+.B E_INTERNAL
+Internal error
+.TP
+.B E_NO_MEMORY
+Out of memory
+.TP
+.B E_TIMEOUT
+Timeout while sending/receiving
+.TP
+.B E_WRONG_USAGE
+Connection was already used for different command
+.TP
+.B E_NO_CONNECTION
+Invalid connection handle
+
+.SH "SEE ALSO"
+.BR enmx_open (3),
+.BR enmx_close (3),
+.BR enmx_read (3),
+.BR enmx_write (3),
+.BR enmx_geterror (3),
+.BR enmx_monitor (3)
+
+.SH AUTHOR
+This manual page was written by Urs Zurbuchen <going_nuts@users.sourceforge.net>.

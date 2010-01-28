@@ -1,0 +1,54 @@
+Installation
+============
+Once you have unpacked the package in a directory of your choice, go there and run the following:
+
+	./configure [options] && make && make install
+
+The following special options are available for configure:
+	--enable-busmonitor			by default, eibnetmux does not support bus monitor connection requests
+								by EIBnet/IP clients (such as ETS), as this may create severe problems
+								for other clients.
+								By specifying this option, eibnetmux allows clients to request a bus
+								monitor connection, as long as no other EIBnet/IP clients are active.
+								If a bus monitor connection has been established, all other clients will
+								be blocked.
+								eibnetmux clients are not taken into account for this functionality.
+								There is no guarantee whatsoever on what happens to them if you
+								turn a bus monitor on (or off).
+	--enable-clientonly			do not build the eibnetmux daemon but only the client library
+								specify this for systems on which you want to build a client application
+								when the daemon is running somewhere else
+	--enable-php				if php is installed on your system and you wish not to install the 
+								php client library, specify this option
+For Gentoo users:
+	An ebuild is available from the downloads section of the eibnetmux project.
+	See http://sourceforge.net/project/showfiles.php?group_id=217070
+
+
+Requirements
+============
+eibnetmux requires the following libraries:
+
+	GNU Pth - The GNU Portable Threads
+		Version: 2.0.6+
+		http://www.gnu.org/software/pth/
+
+	zLogger - Logging framework for C
+		Version: 1.0.5+
+		http://sourceforge.net/projects/zlogger/
+
+	eibnetmux supports user-based authentication for its special client interface
+		for security reasons, it only accepts encrypted passwords
+		encryption support is provided by PolarSSL
+		if you don't have it installed, authentication support is disabled automatically
+	PolarSSL - Small cryptographic library
+		Version 0.12.0+
+		http://www.polarssl.org
+	XySSL - Embedded SSL
+		Version 0.8+
+		http://xyssl.org
+		XySSL is the predecessor of PolarSSL. It is no longer maintained so it is strongly
+		recommended to switch to PolarSSL.
+
+		If you can't find them on their original web sites anymore, a copy is available from the
+		eibnetmux files section on Sourceforge.

@@ -1,0 +1,153 @@
+.\"                                      Hey, EMACS: -*- nroff -*-
+.TH EIBNETMUX_SECURITY 5 "March 16, 2008"
+.\" Some roff macros, for reference:
+.\" .nh        disable hyphenation
+.\" .hy        enable hyphenation
+.\" .ad l      left justify
+.\" .ad b      justify to both left and right margins
+.\" .nf        disable filling
+.\" .fi        enable filling
+.\" .br        insert line break
+.\" .sp <n>    insert n+1 empty lines
+.\" for manpage-specific macros, see man(7)
+.SH NAME
+eibnetmux_security \- Security definitions for the EIBnet/IP multiplexer.
+
+.SH DESCRIPTION
+This file is a plain ASCII file, defining the security rules for
+.BR eibnetmux (1).
+It is made up of several sections, each addressing another aspect.
+
+.SH SECTIONS
+The following sections are available:
+
+.PD 0
+.TP
+.B [eibnetip]
+.TP
+.B [clients]
+.PD
+Define which clients are allowed to connect to
+.B eibnetmux
+using the EIBnet/IP or eibnetmux socket protocol, respectively.
+This can be used to limit, for example, ETS access to specific workstations and or subnets.
+
+Lines in these sections have the following format:
+.RS 14
+type: address/mask
+.RE
+.RS 7
+where \fItype\fR can be:
+.RS 7
+.PD 0
+.TP
+allow
+permits unrestricted access
+.TP
+deny
+all accesses refused
+.TP
+read
+allows only read requests
+.TP
+write
+allows only write requests
+.RE
+
+The source address of any incoming request is first bitwise 'and' to the \fImask\fR, then compared to the \fIaddress\fR.
+If a match is found, the appropriate action is taken and the search is terminated.
+
+The order of the definitions is important.
+.RE
+
+.TP
+.B [authorisations]
+Setup access level for authenticated users (only for eibnetmux socket clients).
+
+Lines in this section have the following format:
+.RS 7
+.RS 7
+level: function [, function] ...
+.RE
+where \fIlevel\fR is a positive integer. Level 0 is used for anonymous access, by default it allows 'none'.
+
+Functions can be:
+.RS 7
+.PD 0
+.TP 16
+read
+read data from bus
+.TP 16
+write
+set value of group on bus
+.TP 16
+monitor
+monitor all requests sent to groups
+.TP 16
+mgmt_client
+connect/disconnect eibnet/ip client
+.TP 16
+mgmt_status
+get status
+.TP 16
+mgmt_loglevel
+set log level
+.TP 16
+all
+all functions
+.TP 16
+bus_all
+all bus accessing funcions, no management
+.TP 16
+mgmt_all
+all management functionality
+.TP 16
+none
+no access allowed
+.RE
+.RE
+
+.TP
+.B [users]
+Define the list of users which can authenticate to
+.BR eibnetmux .
+
+Note that if no users are defined, all access will be anonymous and subject to the authorisations of level 0.
+If level 0 has not been setup in section \fB[Authorisations]\fR, it defaults to 'no access'.
+
+Lines in this section have the following format:
+.RS 7
+.RS 7
+name: [level] password-hash
+.RE
+where \fIname\fR is the user's name. Please note that it is limited to 64 characters and cannot include spaces.
+\fIlevel\fR is a positive integer and references the levels in section \fB[Authorisations]\fR. If it is missing, level 0 is assumed.
+The \fIpassword-hash\fR can be calculated with \fBeibnetmux_hash\fR(1).
+.RE
+
+.TP
+.B [dhm]
+This section is used to specify the parameters for the Diffie-Hellman-Merkle key exchange.
+If it is missing, authentication requests need to be transmitted in the clear.
+If it is specified, the requests can be encrypted, thwarting any eavesdropper attacks.
+
+There are two ways to define the parameters:
+.RS 7
+.RS 7
+file: path
+.RE
+or
+.RS 7
+P: prime
+.br
+G: generator
+.RE
+
+The latter is just a copy of the contents of the file. If both are specified, the file takes precedence and overwrites
+the values in the security file.
+
+The values can be calculated using \fBeibnetmux_dhm\fR(1).
+.RE
+
+.SH AUTHOR
+This manual page was written by Urs Zurbuchen <going_nuts@users.sourceforge.net>.

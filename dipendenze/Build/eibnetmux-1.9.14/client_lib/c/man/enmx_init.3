@@ -1,0 +1,33 @@
+.\" Copyright (C) 2008 Urs Zurbuchen
+.\"
+.TH ENMX_INIT 3  2008-06-17 "" "eibnetmux Client Library"
+.SH NAME
+enmx_init \- initialise eibnetmux client library
+.SH SYNOPSIS
+.nf
+.BR "#define ENMX_PTH" " - for multi-threaded client applications"
+.sp
+.B #include <enmx_lib.h>
+.sp
+.BI "int enmx_init( void " );
+.fi
+.SH DESCRIPTION
+The
+.BR enmx_init ()
+function initialises the \fBeibnetmux\fR(1) C client library.
+It must be called before any other library function is called.
+
+.SH "RETURN VALUE"
+.BR enmx_init ()
+returns a 0 on success, a negative number upon errors.
+
+.SH "ERRORS"
+.TP
+.B -1
+Library initialisation failed.
+
+.SH "SEE ALSO"
+.BR enmx_open (3), enmx_pth_open (3)
+
+.SH AUTHOR
+This manual page was written by Urs Zurbuchen <going_nuts@users.sourceforge.net>.

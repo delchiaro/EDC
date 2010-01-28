@@ -1,0 +1,223 @@
+AC_INIT(zlogger,1.1.2)
+AC_CONFIG_AUX_DIR(scripts)
+AM_INIT_AUTOMAKE
+AM_CONFIG_HEADER(config.h)
+AC_PREREQ(2.60)
+AC_SUBST(VERSION)
+
+dnl check these out
+AC_CANONICAL_HOST
+AC_STDC_HEADERS
+
+dnl Check for programs.
+AC_LANG_C
+AC_PROG_LIBTOOL
+AC_PROG_INSTALL
+AC_PROG_MAKE_SET
+
+dnl Checks for libraries.
+AC_CHECK_LIB( dl, dlopen, [], [AC_MSG_ERROR(not found - you need dlopen())] )
+
+dnl Checks for header files.
+AC_HEADER_STDC
+AC_HEADER_STDBOOL
+AC_HEADER_TIME
+
+AC_CHECK_HEADERS([arpa/inet.h])
+AC_CHECK_HEADERS([netdb.h])
+AC_CHECK_HEADERS([sys/socket.h])
+AC_CHECK_HEADERS([time.h])
+AC_CHECK_HEADERS([sys/time.h])
+AC_CHECK_HEADERS([syslog.h])
+AC_CHECK_HEADERS([stdio.h])
+AC_CHECK_HEADERS([stdarg.h])
+
+dnl Checks for typedefs, structures, and compiler characteristics.
+AC_TYPE_UID_T
+AC_TYPE_UINT8_T
+AC_TYPE_UINT16_T
+AC_TYPE_UINT32_T
+AC_C_CONST
+AC_TYPE_SIZE_T
+AC_STRUCT_TM
+AC_TYPE_SIGNAL
+
+dnl Checks for library functions.
+AC_CHECK_FUNCS([bzero])
+AC_CHECK_FUNCS([gethostbyname])
+AC_CHECK_FUNCS([gettimeofday])
+AC_CHECK_FUNCS([memset])
+AC_CHECK_FUNCS([socket])
+AC_CHECK_FUNCS([strcasecmp])
+AC_CHECK_FUNCS([strchr])
+AC_CHECK_FUNCS([strdup])
+AC_CHECK_FUNCS([strncasecmp])
+AC_FUNC_MALLOC
+
+AC_CHECK_LIB([m], floor, [], [AC_MSG_ERROR(not found - you need floor())])
+AC_CHECK_FUNCS([floor])
+
+dnl Optional features.
+dnl ----------------------
+dnl -                    -
+dnl - plugins building   -
+dnl -                    -
+dnl ----------------------
+dnl
+AC_MSG_CHECKING( if plugins should be built )
+dnl check whether plugins should be enabled and, if they should be,
+dnl check for plugins directory - stolen from Amanda's configure.in
+dnl
+dnl we don't wish to expand ${libdir} yet
+PLUGINDIR='${libdir}/zlogger/plugins/${VERSION}'
+have_plugins=yes
+AC_ARG_WITH(plugins,
+  AC_HELP_STRING( [--with-plugins@<:@=DIR@:>@],
+                  [support plugins (installed in DIR, if supplied).   @<:@default=yes@:>@]),
+[
+  if test "x$withval" = "xno"; then
+    have_plugins=no
+    PLUGINDIR=
+  elif test "x$withval" != "xyes"; then
+    PLUGINDIR="$withval"
+  fi
+])
+if test -z "$PLUGINDIR" ; then
+   AC_MSG_RESULT( [no] )
+else
+  AC_MSG_RESULT( [yes] )
+fi
+if test x$have_plugins = xyes ; then
+  AC_DEFINE([HAVE_PLUGINS], [], [Enable plugins])
+fi
+AM_CONDITIONAL(HAVE_PLUGINS, test "x$have_plugins" = "xyes")
+AC_SUBST(PLUGINDIR)
+CPPFLAGS="$CPPFLAGS -DPLUGIN_DIR=\\\"\$(PLUGINDIR)\\\""
+
+dnl ----------------------
+dnl -                    -
+dnl - pth plugins        -
+dnl -                    -
+dnl ----------------------
+dnl pth plugins (require PTH as threading library)
+AC_CHECK_LIB( pth, pth_spawn, [LIBPTH=-lpth], [AC_MSG_WARN(not found - disabling Pth plugins - see http://www.gnu.org/software/pth/)] )
+AC_SUBST(LIBPTH)
+if test "$LIBPTH" = "-lpth"; then
+  AC_MSG_CHECKING(--disable-pth-plugins argument)
+  AC_ARG_ENABLE( pth-plugins,
+      AC_HELP_STRING( [--disable-pth-plugins], [Disable Pth plugins (even if Pth is available).] ),
+      [case ${enableval} in
+         yes) disable_pth_plugins=false ;;
+          no) disable_pth_plugins=true ;;
+           *) AC_MSG_ERROR( bad value ${enableval} for --disable_pth-plugins ) ;;
+       esac],
+      [disable_pth_plugins=false] )
+  AC_MSG_RESULT($disable_pth_plugins)
+  if test "$disable_pth_plugins" = "false"; then
+    AC_DEFINE([WITH_PTH_PLUGINS], [], [Enable Pth plugins])
+    AC_CHECK_HEADERS( pth.h,,AC_MSG_ERROR(zLogger requires Pth to build Pth plugins - see http://www.gnu.org/software/pth/))
+  fi
+  AM_CONDITIONAL( WITH_PTH_PLUGINS, test x$disable_pth_plugins = xfalse )
+else
+  AM_CONDITIONAL( WITH_PTH_PLUGINS, test 0 = 1 )
+fi
+
+dnl ----------------------
+dnl -                    -
+dnl - utilities          -
+dnl -                    -
+dnl ----------------------
+AC_MSG_CHECKING( if zLogger utilities should be built )
+AC_ARG_ENABLE( utilities,
+    AC_HELP_STRING( [--enable-utilities], [Build zLogger utilities (udp_receiver, plugin analyser).] ),
+    [case ${enableval} in
+       yes) enable_utilities=true ;;
+        no) enable_utilities=false ;;
+         *) AC_MSG_ERROR( bad value ${enableval} for --enable-utilities ) ;;
+     esac],
+    [enable_utilities=true] )
+AC_MSG_RESULT( $enable_utilities )
+AM_CONDITIONAL( HAVE_UTILITIES, test x$enable_utilities = xtrue )
+
+dnl ----------------------
+dnl -                    -
+dnl - doxygen            -
+dnl -                    -
+dnl ----------------------
+dnl
+AC_MSG_CHECKING( if doxygen is available )
+DOXYGEN=doxygen
+AC_ARG_WITH( doxygen,
+    AC_HELP_STRING( [--with-doxygen=FILE], [Use the given path to doxygen. Used for creating C API documentation; defaults to "doxygen"] ),
+	[ if test "$withval" = "no"; then
+	    DOXYGEN=
+	  elif test "$withval" != "yes"; then
+	    DOXYGEN=$withval
+	  fi] )
+if test -z "$DOXYGEN" ; then
+   AC_MSG_RESULT( [no] )
+else
+  if doxygenversion=`$DOXYGEN --version 2>&1` ; then
+    AC_MSG_RESULT( [yes] )
+  else
+    AC_MSG_RESULT( [no] )	
+    DOXYGEN=""
+  fi
+fi
+AM_CONDITIONAL( DOXYGEN_AVAILABLE, test x$DOXYGEN != x )
+
+
+AC_OUTPUT( Makefile
+		   plugins/Makefile
+		   plugins/appender_null/Makefile
+		   plugins/appender_udp/Makefile
+		   plugins/format_zlog/Makefile
+		   plugins/appender_pth_file/Makefile
+		   plugins/appender_pth_udp/Makefile
+		   utilities/Makefile
+		   utilities/udp_receiver/Makefile
+		   utilities/analyser/Makefile
+		   doc/Makefile doc/clib.doxyfile doc/dev.doxyfile
+		   pkgconfig/Makefile 
+		   pkgconfig/libzlogger.pc 
+		 )
+
+dnl ----------------------
+dnl -                    -
+dnl - summary            -
+dnl -                    -
+dnl ----------------------
+AC_MSG_NOTICE()
+AC_MSG_NOTICE()
+AC_MSG_NOTICE()
+AC_MSG_NOTICE( [-------------------------------------------] )
+AC_MSG_NOTICE( [-                                         -] )
+AC_MSG_NOTICE( [- zLogger - configuration status report   -] )
+AC_MSG_NOTICE( [-                                         -] )
+AC_MSG_NOTICE( [-                                         -] )
+AC_MSG_NOTICE( [-        (check for correctness)          -] )
+AC_MSG_NOTICE( [-                                         -] )
+AC_MSG_NOTICE( [-------------------------------------------] )
+AC_MSG_NOTICE()
+if test -z "$DOXYGEN"; then
+  AC_MSG_NOTICE( [- no documentation created for C API                (--with-doxygen=no)] )
+else
+  AC_MSG_NOTICE( [- C API documentation will be created               (--with-doxygen)] )
+fi 
+if test "x$have_plugins" = "xyes"; then
+  AC_MSG_NOTICE( [- standard plugins will be built                    (--with-plugins)] )
+  if test x$disable_pth_plugins = xfalse; then
+  AC_MSG_NOTICE( [- PTH plugins will be built                         (--enable-pth-plugins)] )
+  else
+  AC_MSG_NOTICE( [- PTH plugins are disabled                          (--disable-pth-plugins)] )
+  fi
+else
+  AC_MSG_NOTICE( [- plugins disable                                   (--with-plugins=no)] )
+fi 
+if test "x$enable_utilities" = "xtrue"; then
+  AC_MSG_NOTICE( [- utilities will be built                           (--enable-utilities)] )
+else
+  AC_MSG_NOTICE( [- utilities are disabled                            (--disable-utilities)] )
+fi 
+AC_MSG_NOTICE()
+AC_MSG_NOTICE()

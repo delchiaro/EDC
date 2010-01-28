@@ -1,0 +1,12 @@
+prefix=@prefix@
+exec_prefix=${prefix}
+libdir=${exec_prefix}/lib
+includedir=${prefix}/include
+
+Name: eibnetmux
+Description: Multiplexes several clients onto one EIBnet/IP server (e.g. Siemens N148/21)
+Version: @VERSION@
+Requires: libzlogger >= 1.0.5 
+Libs: -L${libdir} -lpth -leibnetmux -lm
+Libs.private: @LIBPTH@ @LIBPOLARSSL@
+Cflags: -I${includedir}

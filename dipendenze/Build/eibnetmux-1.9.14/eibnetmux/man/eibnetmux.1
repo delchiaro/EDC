@@ -1,0 +1,234 @@
+.\"                                      Hey, EMACS: -*- nroff -*-
+.TH EIBNETMUX 1 "April 27, 2009"
+.\" Some roff macros, for reference:
+.\" .nh        disable hyphenation
+.\" .hy        enable hyphenation
+.\" .ad l      left justify
+.\" .ad b      justify to both left and right margins
+.\" .nf        disable filling
+.\" .fi        enable filling
+.\" .br        insert line break
+.\" .sp <n>    insert n+1 empty lines
+.\" for manpage-specific macros, see man(7)
+.SH NAME
+eibnetmux \- EIBnet/IP multiplexer.
+.SH SYNOPSIS
+.B eibnetmux [options] host[:port]
+
+.SH DESCRIPTION
+.B eibnetmux
+allows multiple client applications to concurrently connect to an
+EIBnet/IP gateway, such as Siemens N148/21. by default, the gateways
+only support one connection, making it impossible to use the EIB
+programming tool ETS, a visualisation solution, and other control tools
+at the same time. You either had to have a second interface, which is
+quite costly, or (for example) stop the visualisation when you wanted
+to reprogram some devices with ETS.
+
+.B eibnetmux
+also implements a very simple, socket-based client interface
+which can be used to retrieve/send data from/to the bus. Using this interface,
+application don't have to implement the quite complex, UDP-based EIBnet/IP
+protocol.
+
+.SH OPTIONS
+This program supports both the usual GNU command line syntax, with
+long options starting with two dashes (`-') as well as short
+options. A description of the options is included below.
+
+.TP
+.B \-s, \-\-eib_server [port]
+Activate the EIBnet/IP server for standard applications like ETS, etc.
+By default, the port is set to 3671, the standard EIBnet/IP port.
+If you change the port number, a client will not find you using
+the standard EIBnet/IP search function.
+
+.TP
+.B \-t, \-\-tcp_server [port]
+Activate the TCP socket server for
+.B eibnetmux
+clients. The default port is 4390.
+
+.TP
+.B \-u, \-\-unix_server [path]
+Activate the UNIX socket server for
+.B eibnetmux
+clients. The default path is /tmp/eibnetmux.
+
+.TP
+.B \-e, \-\-eibd_server [path]
+Activate the EIBD compatible server to support EIBD clients.
+Please note that not all commands are supported.
+The complete list is defined in section
+.B EIBD COMPATIBILIY
+
+.TP
+.B \-l, \-\-log_level <level>
+Set the log level. Please refer to section
+.B LOGGING
+for possible values.
+
+.TP
+.B \-L, \-\-log_dest <destination>
+Define where log information is sent to. See section
+.B LOGGING
+for possible values.
+
+.TP
+.B \-r, \-\-ring_size <kilobytes>
+Set size of debug ring log buffer.
+Debug messages are sent to this ring log which is kept in memory.
+It is only dumped out to the to standard log file when the
+program terminates and upon receiption of \fISIGUSR2\fP.
+
+.TP
+.B \-d, \-\-daemon
+Run
+.B eibnetmux
+in daemon mode.
+
+.TP
+.B \-i, \-\-user <username>
+Run
+.B eibnetmux
+as user
+.B <username>.
+
+.TP
+.B \-g, \-\-group <groupname>
+Run
+.B eibnetmux
+as group
+.B <groupname>.
+
+.TP
+.B \-p, \-\-pidfile <path>
+If set, 
+.B eibnetmux
+writes a file after startup containing its process id. This can
+be used to tell the server to shutdown if it is running in
+daemon mode.
+
+.TP
+.B \-S, \-\-security <path>
+If set, 
+.B eibnetmux
+reads this file for security definitions. See
+.BR eibnetmux_security (5)
+for more information.
+
+.TP
+.B \-A, \-\-address <ip_address>
+The EIBnet/IP protocol requires that the sender puts his own IP address
+in some of the packets. While this is severe problem in NATed networks,
+it is also a challenge on a Unix system which can have multiple network
+interfaces and addresses. By default,
+.B eibnetmux
+asks the Linux kernel and its
+routing table for the correct address to use. However, if you, for any
+reason, want to overwrite this behaviour, you can specify the address to use
+with this option. Please note that this address will be used for any
+connection, disregarding any differing routing. So, be careful! The parameter
+.B ip_address
+must be a numeric IP address (format aaa.bbb.ccc.ddd).
+
+.TP
+.B \-h, \-\-help
+Print a summary of command line arguments.
+
+.SH LOGGING
+The log level is defined by adding the following values:
+.RS
+.PD 0
+.TP
+.B 0
+none
+.TP
+.B 1
+info
+.TP
+.B 2
+verbose
+.TP
+.B 4
+warning
+.TP
+.B 8
+error
+.TP
+.B 16
+critical
+.TP
+.B 32
+fatal
+.TP
+.B 64
+user
+.TP
+.B 128
+debug
+.TP
+.B 256
+trace EIBnet/IP client requests/responses
+.TP
+.B 512
+trace EIBnet/IP server requests/responses
+.TP
+.B 1024
+trace eibnetmux socket server requests/responses
+.TP
+.B 2048
+trace EIBD requests/responses
+.TP
+.B 4096
+admin
+.PD
+.RE
+
+The log destination is defined as:
+.RS
+.PD 0
+.TP
+.B udp:<host:port>
+Send the unadorned log messages to
+.B host
+at port
+.BR port ,
+where a log receiver must be running.
+.TP
+.B file:<path>
+Dump all log messages, including timestamps, to the named file.
+.TP
+.B syslog:<facility>
+Send all log messages to the syslog service. Please refer to
+.BR syslog (3)
+for a definition of possible facilities.
+.PD
+.RE
+
+.SH EIBD COMPATIBILITY
+EIBnetmux features an EIBD-compatible client interface which
+allows it to function as a drop-in replacement for EIBD for the above projects (and others).
+	
+However, due to a different focus, EIBnetmux only implements a subset of the functions offered by EIBD.
+The following command verbs are understood:
+.RS
+.PD 0
+.TP
+.B 0x0012
+EIB_OPEN_VBUSMONITOR
+.B 0x0022
+EIB_OPEN_T_GROUP
+.B 0x0023
+EIB_OPEN_T_BROADCAST
+.B 0x0025
+EIB_APDU_PACKET
+.B 0x0026
+EIB_OPEN_GROUPCON
+.B 0x0027
+EIB_GROUP_PACKET
+.PD
+.RE
+
+.SH AUTHOR
+This manual page was written by Urs Zurbuchen <going_nuts@users.sourceforge.net>.

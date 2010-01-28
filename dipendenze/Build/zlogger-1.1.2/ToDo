@@ -1,0 +1,13 @@
+Additional functions:
+	int zlogLoggerDestroy( zlogLogger logger_id )
+
+Appender
+	rotate: ? oder option zu file: ?
+
+Config
+	parse config file
+
+Utilities
+	rewrite udp_receiver (daemon mode, option to add timestamp, send output to file)
+
+manual pages

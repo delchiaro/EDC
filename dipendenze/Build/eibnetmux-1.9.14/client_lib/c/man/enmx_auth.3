@@ -1,0 +1,77 @@
+.\" Copyright (C) 2008 Urs Zurbuchen
+.\"
+.TH ENMX_AUTH 3  2008-03-16 "" "eibnetmux Client Library"
+.SH NAME
+enmx_auth \- authenticate a user for access to eibnetmux
+.SH SYNOPSIS
+.nf
+.B #include <enmx_lib.h>
+.sp
+.BI "int enmx_auth( ENMX_HANDLE " "handle, " "char *" "username, " "char *" password );
+.fi
+.SH DESCRIPTION
+The
+.BR enmx_auth ()
+encrypts username and password and sends it to \fBeibnetmux\fR(1) for authentication. 
+\fIhandle\fP is a connection handle previously returned by
+.BR enmx_open (3).
+Authentication may happen at any time. You do not have to call this function immediately
+after establishing a connection. However, anonymous access may be restricted and requests may
+be denied due to this.
+
+.SH "RETURN VALUE"
+.BR enmx_auth ()
+returns a 0 on success, -255 if \fIhandle\fP is invalid, or -1 on any other failure.
+Use
+.BR enmx_geterror (3)
+to retrieve the error cause.
+
+.SH "ERRORS"
+.TP
+.B ENMX_COMMUNICATION
+Error when communicating with eibnetmux.
+.TP
+.B E_SERVER_ABORTED
+Server closed connection
+.TP
+.B E_UNKNOWN_GROUP
+Unknown group
+.TP
+.B E_INTERNAL
+Internal error
+.TP
+.B E_NO_MEMORY
+Out of memory
+.TP
+.B E_TIMEOUT
+Timeout while sending/receiving
+.TP
+.B E_WRONG_USAGE
+Connection was already used for different command
+.TP
+.B E_NO_CONNECTION
+Invalid connection handle
+.TP
+.B E_AUTH_UNSUPPORTED
+Authentication is not supported, either by eibnetmux server or by client library.
+.TP
+.B E_AUTH_FAILURE
+Authentication failed due to wrong username/password.
+.TP
+.B E_DHM_FAILURE
+Key exchange with eibnetmux server failed. Authentication not possible.
+.TP
+.B E_PARAMETER
+Invalid username and/or password specified (too long, invalid characters, etc.)
+
+
+.SH "SEE ALSO"
+.BR enmx_open (3),
+.BR enmx_close (3),
+.BR enmx_read (3),
+.BR enmx_write (3),
+.BR enmx_geterror (3),
+.BR enmx_monitor (3)
+
+.SH AUTHOR
+This manual page was written by Urs Zurbuchen <going_nuts@users.sourceforge.net>.

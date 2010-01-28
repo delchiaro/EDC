@@ -1,0 +1,9 @@
+2009.04.14	Enhancement: added pkg-config file (libzlog.pc)
+2009.04.26	Bugfix: log level now consistently defined as 'unsigned int'
+2009.04.27	Bugfix: segfault in appender plugin load
+2009.05.01	Bugfix: logger.c did not compile
+			Enhancement: started with zLogger utilities
+			Change: move app_udp to plugins
+2009.05.21	Bugfix: open channel when appender is defined to check for write access
+2009.05.22	Removed $Id CVS-keywords from sources
+			

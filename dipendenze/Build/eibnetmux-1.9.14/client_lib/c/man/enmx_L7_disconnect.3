@@ -1,0 +1,75 @@
+.\" Copyright (C) 2009 Urs Zurbuchen
+.\"
+.TH ENMX_L7_DISCONNECT 3  2009-03-12 "" "eibnetmux Client Library"
+.SH NAME
+enmx_L7_disconnect \- close layer 7 connection to remote KNX device
+.SH SYNOPSIS
+.nf
+.B #include <enmx_lib.h>
+.sp
+.BI "int enmx_L7_disconnect( ENMX_HANDLE " "handle, " "uint16_t " "knxaddress" );
+.fi
+.SH DESCRIPTION
+The
+.BR enmx_L7_connect ()
+function closes a previously established connection with a remote KNX device.
+Such connections can be established with \fIenmx_L7_open\fP().
+
+\fIhandle\fP is a connection handle previously returned by
+.BR enmx_open (3).
+The connection must not have been used with any other call
+of the eibnetmux library except any of the layer 7 API functions.
+
+The address of the targeted device is encoded in \fIknxaddress\fP
+in the form
+.B llll aaaa dddd dddd
+where
+.RS
+.PD 0
+.TP
+.BR l " - line"
+.TP
+.BR a " - area"
+.TP
+.BR d " - device"
+.PD
+.RE
+
+.SH "RETURN VALUE"
+.BR enmx_L7_disconnect ()
+returns a 0 on success, -255 if \fIhandle\fP is invalid, or -1 on any other failure.
+Use
+.BR enmx_geterror (3)
+to retrieve the error cause.
+
+.SH "ERRORS"
+.TP
+.B ENMX_COMMUNICATION
+Error when communicating with eibnetmux.
+.TP
+.B E_SERVER_ABORTED
+Server closed connection
+.TP
+.B E_INTERNAL
+Internal error
+.TP
+.B E_NO_MEMORY
+Out of memory
+.TP
+.B E_TIMEOUT
+Timeout while sending/receiving
+.TP
+.B E_WRONG_USAGE
+Connection was already used for different command
+.TP
+.B E_NO_CONNECTION
+Invalid connection handle
+
+.SH "SEE ALSO"
+.BR enmx_L7_connect (3),
+.BR enmx_L7_readmemory (3),
+.BR enmx_L7_reset (3),
+.BR enmx_open (3)
+
+.SH AUTHOR
+This manual page was written by Urs Zurbuchen <going_nuts@users.sourceforge.net>.

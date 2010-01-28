@@ -1,0 +1,128 @@
+/*
+ * zLogger - logging library for C
+ * Copyright (C) 2009 Urs Zurbuchen <going_nuts@sourceforge.net>
+ * 
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 3 of the License, or
+ * (at your option) any later version.
+ * 
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ * 
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ */
+ 
+
+ /*!
+ * \mainpage 
+ * 
+ * \image html zlogger_logo.png
+ *
+ * \section intro Introduction
+ *
+ * For latest information please visit
+ * http://zlogger.sourceforge.net
+ *
+ * zLogger is simple & efficient logging library for C with support for multiple appenders/formats,
+ * including ring buffer for debug messages.
+ *
+ * There are three basic objects in zLogger:
+ * 	logger		Specifies which messages are logged to which destination.
+ * 				An application may have more than one logger.
+ * 	format		Specifies the final layout of the log message.
+ * 				Can include various information such as current date/time,
+ * 				the message id, the logger's name, and the message itself.
+ * 	appender	Sends a log message to a specific destination.
+ * 				There are appenders for log files, syslog, UDP receivers.
+ * 				Additional appenders can easily be included as plugins.
+ *
+ * This document is intended as a programmer's reference to the
+ * zLogger C API. It has been generated from the source
+ * code by <a href="http://www.doxygen.org" target="_blank">Doxygen</a>, a great tool created by Dimitri van Heesch.
+ */
+
+/*!
+ * \page copyleft Copyright Statement
+ *
+ * zLogger is
+ * Copyright (C) 2009 Urs Zurbuchen <going_nuts@sourceforge.net>
+ * 
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 3 of the License, or
+ * (at your option) any later version.
+ * 
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ * 
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ *
+ */
+ 
+/*
+ * groups / modules
+ */
+/* ====================================== Logger =================================== */
+/*!
+ * \defgroup xgLogger Logger API
+ *
+ * \brief Loggers specify which messages are logged to which destination.
+ *
+ * This API supports the following features:
+ *    - Logger creation
+ *    - Logger manipulation
+ *    - Logging using a logger
+ *    - Dump ringbuffer
+ */
+
+/* ================================== Appender setup =============================== */
+/*!
+ * \defgroup xgAppender Appender API
+ *
+ * \brief Functions to define and setup various appenders.
+ *
+ * This API supports the following features:
+ *    - Create appenders
+ *    - Get & set appender parameters
+ */
+
+/* =================================== Format setup ================================ */
+/*!
+ * \defgroup xgFormat Format API
+ *
+ * \brief Functions to define and setup output formats.
+ *
+ * This API supports the following features:
+ *    - Create format definition
+ */
+
+/* ================================= Error handling ================================ */
+/*!
+ * \defgroup xgError Error handling API
+ *
+ * \brief Retrieve information about most recent error.
+ *
+ * This API supports the following features:
+ *    - Get error message
+ */
+
+/* =============================== Plugin Management =============================== */
+/*!
+ * \defgroup xgPlugin Plugin Management API
+ *
+ * \brief Extend zLogger functionality with plugins.
+ *
+ * This API supports the following features:
+ *    - Plugins loading
+ *    - Plugins integration
+ */
+

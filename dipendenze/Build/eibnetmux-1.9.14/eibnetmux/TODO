@@ -1,0 +1,10 @@
+- doxygenize
+
+- socket interface
+	show name in logfile
+	show name in management connection table
+
+- all listeners
+	allow definition of ip addresses to listen on
+	default is 0.0.0.0 which means all addresses of this box
+	comma-separated list of ip addresses as optional parameters to server selections (-s/-t/-e port,ips)

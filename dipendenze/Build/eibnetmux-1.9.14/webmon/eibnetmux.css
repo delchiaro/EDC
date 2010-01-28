@@ -1,0 +1,311 @@
+/**
+ * EIBnetmux
+ *
+ * @copyright   2009 by Urs Zurbuchen
+ * @license     GPL
+ *
+/**/
+
+/* clearfix -- see http://positioniseverything.net/easyclearing.html for details on how/why this works*/
+.clearfix:after {
+    content:    ".";
+    display:    block;
+    height:     0;
+    clear:      both;
+    visibility: hidden;
+}
+.clearfix {display: inline;}
+/* Hides from IE-mac \*/
+* html .clearfix {height: 1%;}
+.clearfix {display: block;}
+/* End hide from IE-mac */
+
+body {
+    color:#000;
+    font-family:"trebuchet MS", verdana, helvetica, sans-serif;
+}
+#eibnetmuxBody {
+    width:100%;
+}
+#header {
+    height:55px;
+}
+#header a {
+    border:none;
+	text-decoration:none;
+}
+#headersep {
+	height: 20px;
+}
+#selection {
+	height: 50px;
+}
+#logo {
+    margin:0 10px 0 0;
+}
+#browser_warning {
+    position:absolute;
+    right:5px;
+    width:300px;
+    overflow:hidden;
+    padding:4px 4px 4px 4px;
+    border-top:1px solid #000;
+    border-right:3px solid #9A6B5E;
+    border-bottom:3px solid #FFB412;
+    border-left:1px solid #003;
+    background-color:#FF0000;
+    color:white;
+    font-size:smaller;
+    visibility:hidden;
+}
+#browser_warning .firefox {
+    float:left;
+    margin-right:.35em;
+}
+.alpha_png { behavior: url("./pngbehavior.htc"); }
+
+/*
+ * menu
+ */
+#menu {
+	clear:left;
+    float:left;
+    margin-left:auto;
+    margin-right:18px;
+    margin-top:0px;
+    margin-bottom:8px;
+    padding:12px 12px 18px 12px;
+    border-top:1px solid #000;
+    border-right:3px solid #9A6B5E;
+    border-bottom:3px solid #FFB412;
+    border-left:1px solid #003;
+    -moz-border-radius:8px;
+    background-color:#ddd;
+    text-align:left;
+    width:140px;
+}
+#menu a {
+    border:none;
+    text-decoration:none;
+    color:#000;
+}
+#menu a:hover {
+    color:#500;
+    font-weight:bold;
+}
+#menu img {
+    border:none;
+    height:55px;
+    width:55px;
+}
+#menu .item {
+    margin:0px;
+}
+#menu .subitem {
+    margin:0px;
+    margin-left:28px;
+}
+#menu .title {
+    margin-top:0px;
+    color:#500;
+    font-weight:bold;
+    text-decoration:underline;
+}
+/*
+ * tabs
+ * derived from: http://www.exploding-boy.com/images/cssmenus/menus.html
+ */
+    #tabs {
+      float:left;
+      width:100%;
+      background:#FFF;
+      font-size:93%;
+      line-height:normal;
+	  #border-bottom:1px solid #DD740B;
+	  border-bottom:3px solid #FFB412;
+      }
+    #tabs ul {
+	  margin:0;
+	  padding:10px 10px 0 198px;
+	  list-style:none;
+      }
+    #tabs li {
+      display:inline;
+      margin:0;
+      padding:0;
+      }
+	#tabs a {
+      float:left;
+      background:url("tableft.gif") no-repeat left top;
+      background-position:0% -84px;
+      margin:0;
+      padding:0 0 0 5px;
+      text-decoration:none;
+      }
+    #tabs a span {
+      float:left;
+      display:block;
+      background:url("tabright.gif") no-repeat right top;
+      background-position:100% -84px;
+      padding:5px 15px 4px 6px;
+      color:#111;
+      }
+    /* Commented Backslash Hack hides rule from IE5-Mac \*/
+    #tabs a span {float:none;}
+    /* End IE5-Mac hack */
+	#tabs a.selected {
+      float:left;
+      background:url("tableft.gif") no-repeat left top;
+      margin:0;
+      padding:0 0 0 5px;
+      text-decoration:none;
+      }
+    #tabs a.selected span {
+      float:left;
+      display:block;
+      background:url("tabright.gif") no-repeat right top;
+      padding:5px 15px 4px 6px;
+      color:#FFF;
+      }
+    /* Commented Backslash Hack hides rule from IE5-Mac \*/
+    #tabs a.selected span {float:none;}
+    /* End IE5-Mac hack */
+	#tabs a:hover span {
+      color:#FFF;
+      }
+    #tabs a:hover {
+      background-position:0% -42px;
+      }
+    #tabs a:hover span {
+      background-position:100% -42px;
+      }
+	#tabs a.selected:hover span {
+      color:#FFF;
+      }
+    #tabs a.selected:hover {
+      background-position:0% 0px;
+      }
+    #tabs a.selected:hover span {
+      background-position:100% 0px;
+      }
+
+/*
+ * contents
+ */
+#contents {
+    float:none;
+}
+#contents .title {
+    margin-top:0px;
+    color:#500;
+    font-weight:bold;
+    text-decoration:underline;
+    font-size:large;
+}
+
+#contents .status_table {
+    margin-left:56px;
+    margin-top:0px;
+    padding:.5em 1em;
+    border-top:1px solid #ddd;
+    border-top:1px solid #000;
+    border-right:3px solid #9A6B5E;
+    border-bottom:3px solid #FFB412;
+    border-left:1px solid #003;
+    background-color:#ddd;
+    -moz-border-radius:8px;
+    text-align:left;
+    font-size:90%;
+}
+#contents .status_header {
+    white-space:nowrap;
+    vertical-align:text-top;
+    font-weight:bold;
+    border-style:none;
+    padding:0;
+    spacing:0;
+}
+#contents .status_empty {
+}
+#contents .status_label {
+    white-space:nowrap;
+    vertical-align:text-top;
+    width:100px;
+    overflow:hidden;
+    padding-right:5px;
+    font-size:x-small;
+    border-style:none;
+    text-align:right;
+}
+#contents .status_colhead_left {
+    white-space:nowrap;
+    vertical-align:text-top;
+    overflow:hidden;
+    font-size:smaller;
+    border-style:none;
+}
+#contents .status_colhead_right {
+    white-space:nowrap;
+    vertical-align:text-top;
+    overflow:hidden;
+    font-size:smaller;
+    border-style:none;
+    text-align:right;
+}
+#contents .status_value {
+    white-space:nowrap;
+    vertical-align:text-top;
+    overflow:hidden;
+    padding:0px;
+    font-size:normal;
+    font-weight:bold;
+    border-style:none;
+    color:#500;
+}
+#contents .status_listlabel {
+    white-space:nowrap;
+    vertical-align:text-top;
+    width:100px;
+    overflow:hidden;
+    padding-right:5px;
+    font-size:normal;
+    border-style:none;
+    text-align:right;
+}
+#contents .status_listvalue {
+    white-space:nowrap;
+    vertical-align:text-top;
+    overflow:hidden;
+    padding:0px;
+    font-size:normal;
+    border-style:none;
+    text-align:right;
+}
+#contents .status_copyright {
+    font-size:xx-small;
+    text-align:center;
+}
+#contents .text {
+    margin-top:0px;
+    margin-bottom:.35em;
+    line-height:1.25em;
+    margin-left:28px;
+    margin-right:28px;
+}
+#contents .text_indented {
+    margin-top:0px;
+    margin-bottom:.35em;
+    line-height:1.25em;
+    margin-left:56px;
+    margin-right:28px;
+}
+/*
+ * footer
+ */
+#footer {
+    clear:left;
+    float:none;
+}
+#copyright {
+    font-size:xx-small;
+}

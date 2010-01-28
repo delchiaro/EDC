@@ -1,0 +1,87 @@
+.\" Copyright (C) 2009 Urs Zurbuchen
+.\"
+.TH ENMX_L7_READMEMORY 3  2009-03-12 "" "eibnetmux Client Library"
+.SH NAME
+enmx_L7_readmemory \- read a remote KNX device's memory
+.SH SYNOPSIS
+.nf
+.B #include <enmx_lib.h>
+.sp
+.BI "int enmx_L7_readmemory( ENMX_HANDLE " "handle, " "uint16_t " "knxaddress, " "uint16_t " "offset, " "uint16_t " length, " "unsigned char " "*buf" );
+.fi
+.SH DESCRIPTION
+The
+.BR enmx_L7_readmemory ()
+function reads the memory of a remote KNX device
+and returns it in \fIbuf\fP. The parameters \fIoffset\fP
+and \fIlength\fP define where to start the reading and
+how many bytes to return.
+
+\fIhandle\fP is a connection handle previously returned by
+.BR enmx_open (3).
+The connection must not have been used with any other call
+of the eibnetmux library except any other layer 7 API calls.
+
+The address of the targeted device is encoded in \fIknxaddress\fP
+in the form
+.B llll aaaa dddd dddd
+where
+.RS
+.PD 0
+.TP
+.BR l " - line"
+.TP
+.BR a " - area"
+.TP
+.BR d " - device"
+.PD
+.RE
+
+.SH "RETURN VALUE"
+.BR enmx_L7_readmemory ()
+returns the number of bytes read from the remote KNX device,
+-255 if \fIhandle\fP is invalid, or -1 on any other failure.
+Upon some failures, the number of bytes returned may be less
+than requested by \fIlength\fP.
+Use
+.BR enmx_geterror (3)
+to retrieve the error cause.
+
+.SH "ERRORS"
+.TP
+.B ENMX_COMMUNICATION
+Error when communicating with eibnetmux.
+.TP
+.B E_SERVER_ABORTED
+Server closed connection
+.TP
+.B E_INTERNAL
+Internal error
+.TP
+.B E_NO_MEMORY
+Out of memory
+.TP
+.B E_TIMEOUT
+Timeout while sending/receiving
+.TP
+.B E_WRONG_USAGE
+Connection was already used for different command
+.TP
+.B E_NO_CONNECTION
+Invalid connection handle
+.TP
+.B ENMX_E_L7_MASK
+The device's mask version is too old.
+.TP
+.B ENMX_E_L7_SEQUENCE
+An unexpected response was received.
+
+.SH "SEE ALSO"
+.BR enmx_L7_connect (3),
+.BR enmx_L7_disconnect (3),
+.BR enmx_L7_reset (3),
+.BR enmx_L7_writememory (3),
+.BR enmx_open (3)
+
+.SH AUTHOR
+This manual page was written by Urs Zurbuchen <going_nuts@users.sourceforge.net>.

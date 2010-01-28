@@ -1,0 +1,79 @@
+.\" Copyright (C) 2008 Urs Zurbuchen
+.\"
+.TH ENMX_OPEN 3  2008-06-17 "" "eibnetmux Client Library"
+.SH NAME
+enmx_open \- open a socket connection to eibnetmux
+.SH SYNOPSIS
+.nf
+.B #include <enmx_lib.h>
+.sp
+.BI "ENMX_HANDLE enmx_open( char *" "hostname, " "char *" "myname " );
+.sp
+.BI "ENMX_HANDLE enmx_pth_open( char *" "hostname, " "char *" "myname " );
+.fi
+.SH DESCRIPTION
+The
+.BR enmx_open ()
+function opens a connection to an eibnetmux server and returns
+a connection handle. The value of \fImyname\fP is used as a client identifier.
+
+In simple installations, where there is exactly one eibnetmux server,
+\fIhostname\fP may be passed as NULL and the library will search for the server.
+If the server cannot be found or more than one reply to the search request,
+\fBenmx_open\fP() returns with an error.
+
+If the application uses GNU Pth for (non-preemptive) threading, tell the eibnetmux
+C client library to internally use the appropriate pth_ calls for networking.
+If a call blocks, for example because it has to wait for a reply from the server,
+only the current Pth thread is blocked. If standard Unix networking calls were used,
+the complete process is blocked, including all other Pth threads. To establish 
+a Pth-enabled connection to the server, use
+.BR enmx_pth_open ().
+
+.SH "RETURN VALUE"
+The
+.BR enmx_open ()
+and
+.BR enmx_pth_open ()
+functions return a connection handle. On error, a negative number is returned:
+.RS
+.PD 0
+.TP
+.B -1
+Problem allocating resources: out of memory, etc.
+.TP
+.B -2
+Host unknown.
+.TP
+.B -3
+Unable to establish connection: eibnetmux not running on host, etc.
+.TP
+.B -4
+Unable to register client name with server.
+.TP
+.B -5
+Library not initialised. Call
+.BR enmx_init ().
+.TP
+.B -6
+Either none or more than one eibnetmux server found. Specify target host.
+.TP
+.B -7
+The client identifier \fImyname\fP must be specified.
+.PD
+.RE
+
+.SH BUGS
+The threaded version of the library still uses the standard, not thread-safe
+and blocking
+.BR gethostbyname (3).
+
+.SH "SEE ALSO"
+.BR enmx_close (3),
+.BR enmx_init (3),
+.BR enmx_read (3),
+.BR enmx_write (3),
+.BR enmx_monitor (3)
+
+.SH AUTHOR
+This manual page was written by Urs Zurbuchen <going_nuts@users.sourceforge.net>.

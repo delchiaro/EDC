@@ -1,0 +1,61 @@
+.\" Copyright (C) 2008 Urs Zurbuchen
+.\"
+.TH ENMX_MGMT_CONNECT 3  2008-06-17 "" "eibnetmux Client Library"
+.SH NAME
+enmx_mgmt_connect, enmx_mgmt_disconnect \- manage eibnetmux' eibnet/ip client connection to remote server 
+.SH SYNOPSIS
+.nf
+.B #include <enmx_lib.h>
+.sp
+.BI "int enmx_mgmt_connect( ENMX_HANDLE " handle );
+.sp
+.BI "int enmx_mgmt_disconnect( ENMX_HANDLE " handle );
+.fi
+.SH DESCRIPTION
+The
+.BR enmx_mgmt_connect ()
+function tells the eibnetmux server to activate its client connection
+to the bus interface (usually an N148/21 or similar device).
+.BR enmx_mgmt_disconnect ()
+deactivates the connection, releases it and thus makes it available to
+another client (for example, ETS, the configuration software) without
+shutting down eibnetmux.
+\fIhandle\fP is a connection handle previously returned by
+.BR enmx_open (3).
+
+.SH "ERRORS"
+.TP
+.B ENMX_NO_ERROR
+Last operation executed succesfully.
+.TP
+.B ENMX_COMMUNICATION
+Error when communicating with eibnetmux.
+.TP
+.B E_SERVER_ABORTED
+Server closed connection
+.TP
+.B E_UNKNOWN_GROUP
+Unknown group
+.TP
+.B E_INTERNAL
+Internal error
+.TP
+.B E_NO_MEMORY
+Out of memory
+.TP
+.B E_TIMEOUT
+Timeout while sending/receiving
+.TP
+.B E_NO_CONNECTION
+Invalid connection handle
+
+
+.SH "SEE ALSO"
+.BR enmx_open (3),
+.BR enmx_close (3),
+.BR enmx_read (3),
+.BR enmx_write (3),
+.BR enmx_monitor (3)
+
+.SH AUTHOR
+This manual page was written by Urs Zurbuchen <going_nuts@users.sourceforge.net>.

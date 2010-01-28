@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configurationDescriptor version="62">
+  <logicalFolder name="root" displayName="root" projectFiles="true">
+    <df name="src" root="src">
+      <df name="mylib">
+        <in>mylib.c</in>
+        <in>mylib.h</in>
+      </df>
+      <in>edc.c</in>
+      <in>eibtrace.c</in>
+      <in>eibtrace.h</in>
+      <in>mylib.c</in>
+      <in>mylib.h</in>
+      <in>prepared.c</in>
+      <in>process_prepared_statement.c</in>
+      <in>process_result_set.c</in>
+    </df>
+    <logicalFolder name="ExternalFiles"
+                   displayName="Important Files"
+                   projectFiles="false">
+      <itemPath>EDC-Makefile.mk</itemPath>
+      <itemPath>src/Makefile</itemPath>
+    </logicalFolder>
+  </logicalFolder>
+  <sourceRootList>
+    <Elem>src</Elem>
+  </sourceRootList>
+  <projectmakefile>EDC-Makefile.mk</projectmakefile>
+  <confs>
+    <conf name="Default" type="0">
+      <toolsSet>
+        <developmentServer>localhost</developmentServer>
+        <compilerSet>GNU|GNU</compilerSet>
+        <platform>2</platform>
+      </toolsSet>
+      <makefileType>
+        <makeTool>
+          <buildCommandWorkingDir>src</buildCommandWorkingDir>
+          <buildCommand>${MAKE} -f Makefile</buildCommand>
+          <cleanCommand>${MAKE} -f Makefile clean</cleanCommand>
+          <executablePath>src/edc</executablePath>
+          <cTool>
+            <incDir>
+              <pElem>/usr/include/mysql++</pElem>
+              <pElem>src</pElem>
+              <pElem>/usr/include/mysql</pElem>
+            </incDir>
+          </cTool>
+          <ccTool>
+            <incDir>
+              <pElem>/usr/include/mysql</pElem>
+              <pElem>/usr/include/mysql++</pElem>
+            </incDir>
+          </ccTool>
+        </makeTool>
+      </makefileType>
+    </conf>
+  </confs>
+</configurationDescriptor>
