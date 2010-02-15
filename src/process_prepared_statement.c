@@ -18,6 +18,8 @@ typedef struct
 
 
 
+
+
 static void insert_dati(MYSQL_STMT *stmt, Energia toWrite )
 {
 char          *stmt_str = "INSERT INTO dati (Data,Timestamp,Mittente,Destinatario,Valore) VALUES(?,?,?,?,?)";
@@ -25,13 +27,15 @@ char          *stmt_str = "INSERT INTO dati (Data,Timestamp,Mittente,Destinatari
 
    MYSQL_BIND    param[5];
 
-  printf ("Inserting records...\n");
+  printf ("Inserting records...  ");
+
 
   if (mysql_stmt_prepare (stmt, stmt_str, strlen (stmt_str)) != 0)
   {
     print_stmt_error (stmt, "Could not prepare INSERT statement");
     return;
   }
+ 
 
 
   memset ((void *) param, 0, sizeof (param)); //setto a 0 tutti i bit
@@ -72,9 +76,8 @@ char          *stmt_str = "INSERT INTO dati (Data,Timestamp,Mittente,Destinatari
     print_stmt_error (stmt, "Could not bind parameters for INSERT");
     return;
   }
+  
 
-
-  printf ("Inserting record in statment 'stmt' success\n");
 
 
     if (mysql_stmt_execute (stmt) != 0)
@@ -83,7 +86,7 @@ char          *stmt_str = "INSERT INTO dati (Data,Timestamp,Mittente,Destinatari
       return;
     }
 
-  printf ("Statment execution success: record inserting in table success!\n");
+   else printf ("Statment execution success: record inserting in table SUCCESS!\n");
 
 
 }
@@ -94,13 +97,19 @@ char          *stmt_str = "INSERT INTO dati (Data,Timestamp,Mittente,Destinatari
 
 static bool select_filtro (MYSQL_STMT *stmt, char* destinatario)
 {
-char          stmt_str[80] = "SELECT Writable FROM filtro WHERE Destinatario = ";
-strcat(stmt_str, destinatario);
 
-MYSQL_BIND    param[0];
-my_bool       writable;
-my_bool       is_null;
+    char          stmt_str[2048] = "SELECT Writable FROM filtro WHERE Destinatario = \"";
 
+
+    strcat(stmt_str, destinatario);
+    strcat(stmt_str, "\"");
+
+
+    MYSQL_BIND    param[1];
+    my_bool       writable;
+    my_bool       is_null[1];
+
+    printf("query =");printf(stmt_str);printf("\n");
 
   if (mysql_stmt_prepare (stmt, stmt_str, strlen (stmt_str)) != 0)
   {
@@ -108,7 +117,7 @@ my_bool       is_null;
     return 0;
   }
 
-  if (mysql_stmt_field_count (stmt) != 4)
+  if (mysql_stmt_field_count (stmt) != 1)
   {
     print_stmt_error (stmt, "Unexpected column count from SELECT");
     return 0;
@@ -117,10 +126,14 @@ my_bool       is_null;
 
   memset ((void *) param, 0, sizeof (param)); /* zero the structures */
 
+
+
   param[0].buffer_type = MYSQL_TYPE_BIT;
+  param[0].buffer_length = 1;
   param[0].buffer = (void *) &writable;
-  param[0].is_unsigned = 0;
-  param[0].is_null = &is_null;
+  param[0].is_null = &is_null[0];
+
+
 
   
   if (mysql_stmt_bind_result (stmt, param) != 0)
@@ -128,6 +141,7 @@ my_bool       is_null;
     print_stmt_error (stmt, "Could not bind parameters for SELECT");
     return 0;
   }
+
 
   if (mysql_stmt_execute (stmt) != 0)
   {
@@ -145,17 +159,25 @@ my_bool       is_null;
   else
   {
     /* mysql_stmt_store_result() makes row count available */
-    printf ("Number of rows retrieved: %lu\n", (unsigned long) mysql_stmt_num_rows (stmt));
+    unsigned long num_rows = (unsigned long) mysql_stmt_num_rows (stmt);
+
+    if(num_rows == 0 ) return 0;
+    else printf ("Number of rows retrieved: %lu\n",num_rows);
+    
   }
-/*
+
+
   while (mysql_stmt_fetch (stmt) == 0)  // fetch each row
   {
     //display row values 
-    printf ("%d  ", my_int);
+    printf("writable = %d\n", writable);
   }
-*/
+  
+
 
   mysql_stmt_free_result (stmt);      /* deallocate result set */
+  
+  
   return writable;
 
 }
@@ -190,10 +212,11 @@ char       *create_stmt =
   }
 
   /* insert and retrieve some records */
-
+     
   if( select_filtro(stmt, energia.destinatario) )
   {
       insert_dati (stmt, energia);
   }
   mysql_stmt_close (stmt);       /* deallocate statement handler */
 }
+
