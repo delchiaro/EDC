@@ -1,7 +1,7 @@
 /* #@ _INSERT_RECORDS_ */
 
 #include <mysql/mysql.h>
-
+#include <string.h>
 static void print_stmt_error (MYSQL_STMT *stmt, char *message);
 static void print_error(MYSQL *conn, char *msg);
 //inseriti io.. dovremo usare dei .h ^^
@@ -16,9 +16,11 @@ typedef struct
     char valore[16];
 } Energia;
 
-static void insert_energia(MYSQL_STMT *stmt, Energia toWrite )
+
+
+static void insert_dati(MYSQL_STMT *stmt, Energia toWrite )
 {
-char          *stmt_str = "INSERT INTO energia (Data,Timestamp,Mittente,Destinatario,Valore) VALUES(?,?,?,?,?)";
+char          *stmt_str = "INSERT INTO dati (Data,Timestamp,Mittente,Destinatario,Valore) VALUES(?,?,?,?,?)";
 //                                        DATA  CHAR 15   CHAR 9    CHAR 9      char 15
 
    MYSQL_BIND    param[5];
@@ -85,122 +87,83 @@ char          *stmt_str = "INSERT INTO energia (Data,Timestamp,Mittente,Destinat
 
 
 }
-/* #@ _INSERT_RECORDS_ */
 
 
-/* #@ _SELECT_RECORDS_ */
-static void select_rows (MYSQL_STMT *stmt)
+
+
+
+static bool select_filtro (MYSQL_STMT *stmt, char* destinatario)
 {
-char          *stmt_str = "SELECT i, f, c, dt FROM t";
-MYSQL_BIND    param[4];
-int           my_int;
-float         my_float;
-char          my_str[24];
-unsigned long my_str_length;
-MYSQL_TIME    my_datetime;
-my_bool       is_null[4];
+char          stmt_str[80] = "SELECT Writable FROM filtro WHERE Destinatario = ";
+strcat(stmt_str, destinatario);
 
-  printf ("Retrieving records...\n");
+MYSQL_BIND    param[0];
+my_bool       writable;
+my_bool       is_null;
+
 
   if (mysql_stmt_prepare (stmt, stmt_str, strlen (stmt_str)) != 0)
   {
     print_stmt_error (stmt, "Could not prepare SELECT statement");
-    return;
+    return 0;
   }
 
   if (mysql_stmt_field_count (stmt) != 4)
   {
     print_stmt_error (stmt, "Unexpected column count from SELECT");
-    return;
+    return 0;
   }
 
-  /*
-   * initialize the result column structures
-   */
 
   memset ((void *) param, 0, sizeof (param)); /* zero the structures */
 
-  /* set up INT parameter */
-
-  param[0].buffer_type = MYSQL_TYPE_LONG;
-  param[0].buffer = (void *) &my_int;
+  param[0].buffer_type = MYSQL_TYPE_BIT;
+  param[0].buffer = (void *) &writable;
   param[0].is_unsigned = 0;
-  param[0].is_null = &is_null[0];
-  /* buffer_length, length need not be set */
+  param[0].is_null = &is_null;
 
-  /* set up FLOAT parameter */
-
-  param[1].buffer_type = MYSQL_TYPE_FLOAT;
-  param[1].buffer = (void *) &my_float;
-  param[1].is_null = &is_null[1];
-  /* is_unsigned, buffer_length, length need not be set */
-
-  /* set up CHAR parameter */
-
-  param[2].buffer_type = MYSQL_TYPE_STRING;
-  param[2].buffer = (void *) my_str;
-  param[2].buffer_length = sizeof (my_str);
-  param[2].length = &my_str_length;
-  param[2].is_null = &is_null[2];
-  /* is_unsigned need not be set */
-
-  /* set up DATETIME parameter */
-
-  param[3].buffer_type = MYSQL_TYPE_DATETIME;
-  param[3].buffer = (void *) &my_datetime;
-  param[3].is_null = &is_null[3];
-  /* is_unsigned, buffer_length, length need not be set */
-
+  
   if (mysql_stmt_bind_result (stmt, param) != 0)
   {
     print_stmt_error (stmt, "Could not bind parameters for SELECT");
-    return;
+    return 0;
   }
 
   if (mysql_stmt_execute (stmt) != 0)
   {
     print_stmt_error (stmt, "Could not execute SELECT");
-    return;
+    return 0;
   }
 
-  /*
-   * fetch result set into client memory; this is optional, but it
-   * allows mysql_stmt_num_rows() to be called to determine the
-   * number of rows in the result set.
-   */
+
 
   if (mysql_stmt_store_result (stmt) != 0)
   {
     print_stmt_error (stmt, "Could not buffer result set");
-    return;
+    return 0;
   }
   else
   {
     /* mysql_stmt_store_result() makes row count available */
-    printf ("Number of rows retrieved: %lu\n",
-            (unsigned long) mysql_stmt_num_rows (stmt));
+    printf ("Number of rows retrieved: %lu\n", (unsigned long) mysql_stmt_num_rows (stmt));
   }
-
-  while (mysql_stmt_fetch (stmt) == 0)  /* fetch each row */
+/*
+  while (mysql_stmt_fetch (stmt) == 0)  // fetch each row
   {
-    /* display row values */
+    //display row values 
     printf ("%d  ", my_int);
-    printf ("%.2f  ", my_float);
-    printf ("%*.*s  ", my_str_length, my_str_length, my_str);
-    printf ("%04d-%02d-%02d %02d:%02d:%02d\n",
-            my_datetime.year,
-            my_datetime.month,
-            my_datetime.day,
-            my_datetime.hour,
-            my_datetime.minute,
-            my_datetime.second);
   }
+*/
 
   mysql_stmt_free_result (stmt);      /* deallocate result set */
-}
-/* #@ _SELECT_RECORDS_ */
+  return writable;
 
-/* #@ _PROCESS_PREPARED_STATEMENTS_ */
+}
+
+
+
+
+
 void process_prepared_statements (MYSQL *conn, Energia energia)
 {
 MYSQL_STMT *stmt;
@@ -228,16 +191,9 @@ char       *create_stmt =
 
   /* insert and retrieve some records */
 
-/*
-  Energia ene;
-  strcpy(ene.destinatario,"dest1");
-  strcpy(ene.mittente, "mit");
-  strcpy(ene.timestamp, "01:01 tstamp");
-  strcpy(ene.valore, "value");
-*/
-  insert_energia (stmt, energia);
-  //select_rows (stmt);
-
+  if( select_filtro(stmt, energia.destinatario) )
+  {
+      insert_dati (stmt, energia);
+  }
   mysql_stmt_close (stmt);       /* deallocate statement handler */
 }
-/* #@ _PROCESS_PREPARED_STATEMENTS_ */
