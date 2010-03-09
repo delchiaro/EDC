@@ -133,26 +133,33 @@ char *hexdump( void *string, int len, int spaces )
         }
     }
     
-    if( len == 0 )
-        len = strlen( string );
-    if( (len *2 + (spaces ? len : 0) +1) > buflen ) {
+    if( len == 0 ) len = strlen( string );
+    if( (len *2 + (spaces ? len : 0) +1) > buflen )
+    {
         buflen = len *2 + (spaces ? len : 0) +1;
-        if( buf == NULL ) {
+        if( buf == NULL )
+        {
             buf = malloc( buflen );
-        } else {
+        } 
+        else
+        {
             buf = realloc( buf, buflen );
         }
-        if( buf == NULL ) {
+        
+        if( buf == NULL )
+        {
             fprintf( stderr, "Out of memory: %s\n", strerror( errno ));
             exit( -9 );
         }
     }
     
     ptr = string;
-    while( len > 0 ) {
+    while( len > 0 )
+    {
         sprintf( &buf[idx], "%2.2x", *ptr );
         idx +=2;
-        if( spaces ) {
+        if( spaces )
+        {
             sprintf( &buf[idx], " " );
             idx++;
         }
@@ -162,6 +169,8 @@ char *hexdump( void *string, int len, int spaces )
 
     return( buf );
 }
+
+
 
 
 /*

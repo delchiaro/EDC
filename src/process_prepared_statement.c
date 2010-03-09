@@ -4,8 +4,21 @@
 #include <string.h>
 static void print_stmt_error (MYSQL_STMT *stmt, char *message);
 static void print_error(MYSQL *conn, char *msg);
-//inseriti io.. dovremo usare dei .h ^^
- 
+
+
+int process_prepared_statements(MYSQL *conn, MYSQL_STMT **stmt);
+
+typedef struct
+{
+    long EIS;
+    my_bool writable;
+} Filtro;
+
+void initFiltro(Filtro *toInit)
+{
+    toInit->EIS = 0;
+    toInit->writable = 0;
+}
 
 typedef struct
 {
@@ -13,29 +26,33 @@ typedef struct
     char timestamp[16];
     char mittente[10];
     char destinatario[10];
-    char valore[16];
+    double valore;
 } Energia;
 
 
+static int insert_dati( MYSQL *conn, Energia toWrite );
+static int select_filtro ( MYSQL *conn, char* destinatario, Filtro** filtro);
 
 
 
-static void insert_dati(MYSQL_STMT *stmt, Energia toWrite )
+
+static int insert_dati( MYSQL *conn, Energia toWrite )
 {
-char          *stmt_str = "INSERT INTO dati (Data,Timestamp,Mittente,Destinatario,Valore) VALUES(?,?,?,?,?)";
-//                                        DATA  CHAR 15   CHAR 9    CHAR 9      char 15
+    MYSQL_STMT *stmt;
+    process_prepared_statements(conn, &stmt);
+    char *stmt_str = "INSERT INTO dati (Data,Timestamp,Mittente,Destinatario,Valore) VALUES(?,?,?,?,?)";
 
-   MYSQL_BIND    param[5];
 
-  printf ("Inserting records...  ");
+   MYSQL_BIND param[5];
+
+  printf ("Inserting records... ");
 
 
   if (mysql_stmt_prepare (stmt, stmt_str, strlen (stmt_str)) != 0)
   {
     print_stmt_error (stmt, "Could not prepare INSERT statement");
-    return;
+    return 1;
   }
- 
 
 
   memset ((void *) param, 0, sizeof (param)); //setto a 0 tutti i bit
@@ -63,140 +80,137 @@ char          *stmt_str = "INSERT INTO dati (Data,Timestamp,Mittente,Destinatari
   param[3].buffer_length = strlen(toWrite.destinatario);
   param[3].is_null = 0;
 
-  param[4].buffer_type = MYSQL_TYPE_STRING;
+  param[4].buffer_type = MYSQL_TYPE_DOUBLE;
   param[4].buffer = (void *) &toWrite.valore;
-  param[4].buffer_length = strlen(toWrite.valore);
+  param[4].buffer_length = sizeof(toWrite.valore);
   param[4].is_null = 0;
 
 
 
-  
+
   if (mysql_stmt_bind_param (stmt, param) != 0)// inserisco i parametri nello statment al posto dei '?'
   {
     print_stmt_error (stmt, "Could not bind parameters for INSERT");
-    return;
+    return 2;
   }
-  
 
 
 
-    if (mysql_stmt_execute (stmt) != 0)
-    {
+   if (mysql_stmt_execute (stmt) != 0)
+   {
       print_stmt_error (stmt, "Could not execute statement");
-      return;
-    }
+      return 3;
+   }
 
    else printf ("Statment execution success: record inserting in table SUCCESS!\n");
-
+   mysql_stmt_close(stmt); /* deallocate statement handler */
 
 }
 
 
-
-
-
-static bool select_filtro (MYSQL_STMT *stmt, char* destinatario)
+static void free_filtro( Filtro* filtro)
 {
+    if( filtro != NULL )free(filtro);
+}
+static int select_filtro ( MYSQL *conn, char* destinatario, Filtro** filtro)
+{
+    MYSQL_STMT *stmt;
 
-    char          stmt_str[2048] = "SELECT Writable FROM filtro WHERE Destinatario = \"";
+    process_prepared_statements(conn, &stmt);
+    char stmt_str[2048] = "SELECT Writable,EIS FROM filtro WHERE Destinatario = \"";
 
 
     strcat(stmt_str, destinatario);
     strcat(stmt_str, "\"");
 
 
-    MYSQL_BIND    param[1];
-    my_bool       writable;
-    my_bool       is_null[1];
+    MYSQL_BIND param[2];
+    my_bool is_null[2];
+    *filtro = (Filtro*) malloc(sizeof(Filtro));
+    
 
-    printf("query =");printf(stmt_str);printf("\n");
+    printf("query = %s\n",stmt_str);
+
+
 
   if (mysql_stmt_prepare (stmt, stmt_str, strlen (stmt_str)) != 0)
   {
     print_stmt_error (stmt, "Could not prepare SELECT statement");
-    return 0;
+    return 1;
   }
 
-  if (mysql_stmt_field_count (stmt) != 1)
-  {
-    print_stmt_error (stmt, "Unexpected column count from SELECT");
-    return 0;
-  }
 
 
   memset ((void *) param, 0, sizeof (param)); /* zero the structures */
 
 
-
   param[0].buffer_type = MYSQL_TYPE_BIT;
   param[0].buffer_length = 1;
-  param[0].buffer = (void *) &writable;
+  param[0].buffer = (void *) &((*filtro)->writable);
   param[0].is_null = &is_null[0];
 
+  param[1].buffer_type = MYSQL_TYPE_LONG;
+  param[1].buffer_length = 4;
+  param[1].buffer = (void *) &((*filtro)->EIS);
+  param[1].is_null = &is_null[1];
 
 
-  
+
   if (mysql_stmt_bind_result (stmt, param) != 0)
   {
     print_stmt_error (stmt, "Could not bind parameters for SELECT");
-    return 0;
+    return 3;
   }
 
 
   if (mysql_stmt_execute (stmt) != 0)
   {
     print_stmt_error (stmt, "Could not execute SELECT");
-    return 0;
+    return 4;
   }
-
 
 
   if (mysql_stmt_store_result (stmt) != 0)
   {
     print_stmt_error (stmt, "Could not buffer result set");
-    return 0;
+    return 5;
   }
   else
   {
-    /* mysql_stmt_store_result() makes row count available */
     unsigned long num_rows = (unsigned long) mysql_stmt_num_rows (stmt);
-
-    if(num_rows == 0 ) return 0;
-    else printf ("Number of rows retrieved: %lu\n",num_rows);
     
+    if(num_rows == 0 )
+    {
+        (*filtro)->writable = 0;
+        (*filtro)->EIS = 0;
+    }
   }
 
 
-  while (mysql_stmt_fetch (stmt) == 0)  // fetch each row
+  while (mysql_stmt_fetch (stmt) == 0) // fetch each row
   {
-    //display row values 
-    printf("writable = %d\n", writable);
+    //display row values
+     printf("writable = %d\n", (*filtro)->writable);
   }
-  
 
 
-  mysql_stmt_free_result (stmt);      /* deallocate result set */
-  
-  
-  return writable;
+
+
+  mysql_stmt_free_result (stmt); /* deallocate result set */
+
+    mysql_stmt_close (stmt); /* deallocate statement handler */
+
+    return 0;
 
 }
 
 
 
-
-
-void process_prepared_statements (MYSQL *conn, Energia energia)
-{
-MYSQL_STMT *stmt;
-char       *use_stmt = "USE konnex";
-char       *drop_stmt = "DROP TABLE IF EXISTS t";
-char       *create_stmt =
-  "CREATE TABLE t (i INT, f FLOAT, c CHAR(24), dt DATETIME)";
-
-  /* select database and create test table */
-
-  if (mysql_query (conn, use_stmt) != 0
+/*
+ * char *drop_stmt = "DROP TABLE IF EXISTS t";
+    char *create_stmt = "CREATE TABLE t (i INT, f FLOAT, c CHAR(24), dt DATETIME)";
+ *
+ *   if (mysql_query (conn, use_stmt) != 0
     || mysql_query (conn, drop_stmt) != 0
     || mysql_query (conn, create_stmt) != 0)
   {
@@ -204,19 +218,40 @@ char       *create_stmt =
     return;
   }
 
-  stmt = mysql_stmt_init (conn);  /* allocate statement handler */
-  if (stmt == NULL)
-  {
-    print_error (conn, "Could not initialize statement handler");
-    return;
-  }
 
-  /* insert and retrieve some records */
-     
-  if( select_filtro(stmt, energia.destinatario) )
+ * */
+
+int process_prepared_statements(MYSQL *conn, MYSQL_STMT **stmt)
+{
+
+    char *use_stmt = "USE konnex";
+    /* select database and create test table */
+    if (mysql_query (conn, use_stmt) != 0 )
+    {
+        print_error (conn, "Could not set up konnex table");
+        return 1;
+    }
+    
+    *stmt = mysql_stmt_init (conn); /* allocate statement handler */
+
+    if (*stmt == NULL)
+    {
+        print_error (conn, "Could not initialize statement handler");
+        return 2;
+    }
+
+    return 0;
+}
+
+/*
+
+  Filtro filtro =  select_filtro (stmt,energia.destinatario);
+  //se EIS è 0 c'è stato un errore nella funzione select_filtro(..)
+  if( filtro.writable == 1 && filtro.EIS != 0 )
   {
       insert_dati (stmt, energia);
   }
-  mysql_stmt_close (stmt);       /* deallocate statement handler */
-}
+
+ */
+
 

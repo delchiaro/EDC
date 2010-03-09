@@ -1,6 +1,7 @@
 #include "prepared.c"
 #include "eibtrace.c"
 
+
 #include <stdio.h>
 #include <stdint.h>
 #include <stdlib.h>
@@ -13,13 +14,15 @@
 #include <math.h>
 #include <arpa/inet.h>
 #include <sys/time.h>
+#include <pthread.h>
+#include <semaphore.h>
 
 #include <eibnetmux/enmx_lib.h>
 #include "mylib.h"
 
+
 int prepared ( char* user, char* pwd, char* ip, int porta, char* dbname, Energia energia);
 
- // prepared( "root", "labdomvinci", "10.0.0.55", "3306", "konnex",);
 
 int main( int argc, char **argv )
 {
@@ -46,6 +49,13 @@ int main( int argc, char **argv )
     unsigned char           value[20];
     uint32_t                *p_int = 0;
     double                  *p_real;
+
+    if (mysql_library_init(0, NULL, NULL)) //inizializza la CLI di my_sql
+    {
+        printf(NULL, "mysql_library_init() failed");
+        return 3;
+    }
+
 
     opterr = 0;
     while( ( c = getopt( argc, argv, "c:u:q" )) != -1 )
@@ -118,18 +128,25 @@ int main( int argc, char **argv )
 
 
 
-    buf = malloc( 10 );
+    buf = malloc( 27 );
     buflen = 10;
     if( total != -1 )
     {
         spaces = floor( log10( total )) +1;
     }
 
-   // while( total == -1 || count < total )
+    
+    Filtro *filtro;
+    MYSQL *conn;
+    initFiltro(filtro);
+    start_db_connection(&conn, "root","labdomvinci","10.0.0.55", 3306, "konnex");
     while(1)
     {
+
         buf = enmx_monitor( sock_con, 0xffff, buf, &buflen, &value_size );
-        if( buf == NULL ) {
+
+        if( buf == NULL )
+        {
             switch( enmx_geterror( sock_con ))
             {
                 case ENMX_E_COMMUNICATION:
@@ -176,113 +193,78 @@ int main( int argc, char **argv )
             //energia.data.second_part    = (uint32_t)tv.tv_usec / 1000;
             //energia.data.time_type;
 
+
             sprintf( energia.timestamp, "%02d:%02d:%02d:%03d", ltime->tm_hour, ltime->tm_min, ltime->tm_sec, (uint32_t)tv.tv_usec / 1000 );
-
-
-
             sprintf( energia.mittente, "%8s  ", knx_physical( cemiframe->saddr ));
-
-
             sprintf( energia.destinatario, "%8s", (cemiframe->ntwrk & EIB_DAF_GROUP) ? knx_group( cemiframe->daddr ) : knx_physical( cemiframe->daddr ));
-           
-            sprintf(energia.valore, "%s", hexdump( &cemiframe->apci, cemiframe->length, cemiframe->length ) );
-            //sprintf(energia.valore, "%s", hexdump( &cemiframe->apci, cemiframe->length, cemiframe->length ));
-            
-            /*
-            if( cemiframe->apci & (A_WRITE_VALUE_REQ | A_RESPONSE_VALUE_REQ) )
+
+            str_unfill(energia.destinatario, ' ');
+
+
+            while( select_filtro(conn, energia.destinatario, &filtro) > 0 )
             {
-                printf( " : " );
-                p_int = (uint32_t *)value;
-                p_real = (double *)value;
-
                 
-                switch( cemiframe->length )
-                {
-                    case 1:     // EIS 1, 2, 7, 8
-                        
-                        type = enmx_frame2value( 1, cemiframe, value );
-                        printf( "%s | ", (*p_int == 0) ? "off" : "on" );
-                        type = enmx_frame2value( 2, cemiframe, value );
-                        printf( "%d | ", *p_int );
-                        type = enmx_frame2value( 7, cemiframe, value );
-                        printf( "%d | ", *p_int );
-                        type = enmx_frame2value( 8, cemiframe, value );
-                        printf( "%d", *p_int );
-                        eis_types = "1, 2, 7, 8";
-                        
-
-                        sprintf(energia.valore, "%s", cemiframe )
-                        break;
-
-
-                    case 2:     // 6, 13, 14
-                        
-                        type = enmx_frame2value( 6, cemiframe, value );
-                        printf( "%d%% | %d", *p_int * 100 / 255, *p_int );
-                        type = enmx_frame2value( 13, cemiframe, value );
-                        if( *p_int >=  0x20 && *p_int < 0x7f )
-                        {
-                            printf( " | %c", *p_int );
-                            eis_types = "6, 14, 13";
-                        }
-                        else
-                        {
-                            eis_types = "6, 14";
-                        }
-                        
-                        break;
-
-
-                    case 3:     // 5, 10
-                        type = enmx_frame2value( 5, cemiframe, value );
-                        printf( "%.2f | ", *p_real );
-                        type = enmx_frame2value( 10, cemiframe, value );
-                        printf( "%d", *p_int );
-                        eis_types = "5, 10";
-                        break;
-
-
-                    case 4:     // 3, 4
-                        type = enmx_frame2value( 3, cemiframe, value );
-                        seconds = *p_int;
-                        ltime->tm_hour = seconds / 3600;
-                        seconds %= 3600;
-                        ltime->tm_min = seconds / 60;
-                        seconds %= 60;
-                        ltime->tm_sec = seconds;
-                        printf( "%02d:%02d:%02d | ", ltime->tm_hour, ltime->tm_min, ltime->tm_sec );
-                        type = enmx_frame2value( 4, cemiframe, value );
-                        ltime = localtime( (time_t *)p_int );
-                        printf( "%04d/%02d/%02d", ltime->tm_year + 1900, ltime->tm_mon +1, ltime->tm_mday );
-                        eis_types = "3, 4";
-                        break;
-
-
-                    case 5:     // 9, 11, 12
-                        type = enmx_frame2value( 11, cemiframe, value );
-                        printf( "%d | ", *p_int );
-                        type = enmx_frame2value( 9, cemiframe, value );
-                        printf( "%.2f", *p_real );
-                        type = enmx_frame2value( 12, cemiframe, value );
-                        // printf( "12: <->" );
-                        eis_types = "9, 11, 12";
-                        break;
-
-
-                    default:    // 15
-                        // printf( "%s", string );
-                        eis_types = "15";
-                        break;
-                }
-                
+                close_db_connection(&conn);
+                start_db_connection(&conn, "root","labdomvinci","10.0.0.55", 3306, "konnex");
             }
-            */
+           float vald, reversevald;
+
+         /* vald = (float) (cemiframe->data[0]<<24 | cemiframe->data[1]<<16 | cemiframe->data[2]<<8 | cemiframe->data[3]);
+          reversevald = (float) (cemiframe->data[3]<<24 | cemiframe->data[2]<<16 | cemiframe->data[1]<<8 | cemiframe->data[0]);
+          printf("\nval = %f\nrevers = %f\n", vald, reversevald);
+          */
+           int i;
+           for( i = 0; i < 16; i++)
+           {
+               printf("%x ", cemiframe->data[i]);
+           }
+           printf("\n");
+
+
+           float fl;
+           uint8_t* p1 = (uint8_t*)&fl;
+           *p1 = cemiframe->data[3];
+           p1++;
+           *p1 = cemiframe->data[2];
+           p1++;
+           *p1 = cemiframe->data[1];
+           p1++;
+           *p1 = cemiframe->data[0];
+
            
+           //memmove( &fl,cemiframe->data,4);
+           printf("MY float = %f\n",fl);
+           printf("My int = %d\n",(int)fl);
+           printf("My bool = %d\n",cemiframe->apci);
+           
+/*            enmx_frame2value( filtro->EIS, cemiframe, value );
+
+
+            p_int = (uint32_t *)value;
+            p_real = (double *)value;
+           
+            energia.valore = *p_real;
+            printf("EIS = %d", filtro->EIS);
+            printf("value string = %s", value);
+            printf("\nvalue int = %d", *p_int);
+            printf("\nvalue bool = %d", *(my_bool*)value);
+            printf("\nvalue float = %f\n\n", *p_real);
+  */
+            
+            if( filtro->writable )
+            {
+                while( insert_dati(conn, energia) > 0 )
+                {
+                    close_db_connection(conn);
+                    start_db_connection(conn, "root","labdomvinci","10.0.0.55", 3306, "konnex");
+                }
+            }
         }
-         prepared( "root", "labdomvinci", "10.0.0.55", 3306, "konnex", energia);
+        
+        //prepared( "root", "labdomvinci", "10.0.0.55", 3306, "konnex", energia);
     }
+    close_db_connection(&conn);
 
-
-    
+    mysql_library_end();//termina la libreria mysql
     return( 0 );
 }
