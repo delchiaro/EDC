@@ -42,9 +42,23 @@ int prepared ( char* user, char* pwd, char* ip, int porta, char* dbname, Energia
 int edc_frame2value( CEMIFRAME *cemiframe, long eis, float *returned );
 
 
-/*
-int scanDestinatario(char *EIBtarget, char* EIBuser, char* EIBpwd, char DB)
+
+int scanDestinatario(char *target)
 {
+
+    char* destinatario;
+        
+    uint16_t                value_size;
+    struct timeval          tv;
+    struct tm               *ltime;
+    uint16_t                buflen;
+    unsigned char           *buf;
+    CEMIFRAME               *cemiframe;
+
+    int                     total = -1;
+
+    int                     spaces = 1;
+
     sock_con = enmx_open( target, "eibtrace" );
     if( sock_con < 0 )
     {
@@ -52,20 +66,7 @@ int scanDestinatario(char *EIBtarget, char* EIBuser, char* EIBpwd, char DB)
         exit( -2 );
     }
 
-
-
-
-
-
-    if( quiet == 0 )
-    {
-        printf( "Connection to eibnetmux '%s' established\n", enmx_gethost( sock_con ));
-    }
-
-
-
-
-    buf = malloc( 27 );
+    buf = malloc( 50 );
     buflen = 10;
     if( total != -1 )
     {
@@ -81,111 +82,79 @@ int scanDestinatario(char *EIBtarget, char* EIBuser, char* EIBpwd, char DB)
     start_db_connection(&conn, "root","labdomvinci","10.0.0.55", 3306, "konnex");
 
     enmx_monitor( sock_con, 0xffff, buf, &buflen, &value_size );
-}*/
+     while(1)
+    {
+
+        buf = enmx_monitor( sock_con, 0xffff, buf, &buflen, &value_size );
+
+        if( buf == NULL )
+        {
+            switch( enmx_geterror( sock_con ))
+            {
+                case ENMX_E_COMMUNICATION:
+                case ENMX_E_NO_CONNECTION:
+                case ENMX_E_WRONG_USAGE:
+                case ENMX_E_NO_MEMORY:
+                    fprintf( stderr, "Error on write: %s\n", enmx_errormessage( sock_con ));
+                    enmx_close( sock_con );
+                    exit( -4 );
+                    break;
+                case ENMX_E_INTERNAL:
+                    fprintf( stderr, "Bad status returned\n" );
+                    break;
+                case ENMX_E_SERVER_ABORTED:
+                    fprintf( stderr, "EOF reached: %s\n", enmx_errormessage( sock_con ));
+                    enmx_close( sock_con );
+                    exit( -4 );
+                    break;
+                case ENMX_E_TIMEOUT:
+                    fprintf( stderr, "No value received\n" );
+                    break;
+            }
+        }
+        else
+        {
+            cemiframe = (CEMIFRAME *) buf;
+            
+            sprintf( destinatario, "%8s", (cemiframe->ntwrk & EIB_DAF_GROUP) ? knx_group( cemiframe->daddr ) : knx_physical( cemiframe->daddr ));
+            str_unfill(destinatario, ' ');
+
+            puts("debug,,,,,1111111");
+            puts(target);
+
+            Filtro filtro;
+            filtro.valid = 1;
+            select_filtro(conn, destinatario, &filtro);
+            if(filtro.valid == 1)
+            {
+                while( insert_filtro(conn, destinatario) > 0 )
+                 {
+                    close_db_connection(conn);
+                    start_db_connection(conn, "root","labdomvinci","10.0.0.55", 3306, "konnex");
+                }
+            }
+           
+
+        }
+
+        //prepared( "root", "labdomvinci", "10.0.0.55", 3306, "konnex", energia);
+    }
+    close_db_connection(&conn);
+}
 
 typedef struct
 {
-    char eibTarget[23]; // IP:PORT
-    char eibUser[20];
-    char eibPwd[20];
-    char dbIP[16];
+    char *eibTarget; // IP:PORT
+    char *eibUser;
+    char *eibPwd;
+    char *dbIP;
     int dbPort;
-    char dbUser[20];
-    char dbPwd[20];
-    char dbDatabase[20];
+    char *dbUser;
+    char *dbPwd;
+    char *dbDatabase;
 
 }EDC_Parameter;
 
-
-void processParameterHelp()
-{
-            puts("-t      eibnetmuxTarget (ip:port)");
-            puts("-eu     eibnetmuxUser");
-            puts("-ep     eibnetmuxPwd");
-            puts("-ip     dbIpAddress");
-            puts("-port   dbPort");
-            puts("-user   dbUsername");
-            puts("-pwd    dbPassword");
-            puts("-db     databaseName");
-            exit(0);
-}
-EDC_Parameter processParameter(int argc, char** argv)
-{
-    /*  -t      eibnetmuxTarget (ip:port)
-     *  -eu     eibnetmuxUser
-     *  -ep     eibnetmuxPwd
-     *
-     *  -ip     dbIpAddress
-     *  -port   dbPort
-     *  -user   dbUsername
-     *  -pwd    dbPassword
-     *  -db     databaseName
-     */
-    
-    if( argc == 1) processParameterHelp();
-    EDC_Parameter param;
-    strcpy(param.dbDatabase, "");
-    param.dbPort = 0;
-    strcpy(param.dbIP,"");
-    strcpy(param.dbPwd,"");
-    strcpy(param.dbUser,"");
-    strcpy(param.eibPwd,"");
-    strcpy(param.eibTarget,"");
-    strcpy(param.eibUser,"");
-    
-    int i;
-    for(i = 0; i < argc; i++)
-    {
-        if( strcmp(argv[i], "-t") == 0)
-        {
-            i++;
-            strcpy(param.eibTarget, argv[i]);
-        }
-        else if( strcmp(argv[i], "-eu") == 0)
-        {
-            i++;
-            strcpy(param.eibUser, argv[i]);
-        }
-        else if( strcmp(argv[i], "-ep") == 0)
-        {
-            i++;
-            strcpy(param.eibPwd, argv[i]);
-        }
-
-
-        else if( strcmp(argv[i], "-ip") == 0)
-        {
-            i++;
-            strcpy(param.dbIP, argv[i]);
-        }
-        else if( strcmp(argv[i], "-port") == 0)
-        {
-            i++;
-            strcpy(param.dbPort, atoi(argv[i]));
-        }
-        else if( strcmp(argv[i], "-user") == 0)
-        {
-            i++;
-            strcpy(param.dbUser, argv[i]);
-        }
-        else if( strcmp(argv[i], "-pwd") == 0)
-        {
-            i++;
-            strcpy(param.dbPwd, argv[i]);
-        }
-        else if( strcmp(argv[i], "-db") == 0)
-        {
-            i++;
-            strcpy(param.dbDatabase, argv[i]);
-        }
-        else if( strcmp(argv[i], "-?") == 0)
-        {
-            processParameterHelp();
-        }
-        
-    }
-    
-}
 
 int main( int argc, char **argv )
 {
@@ -202,18 +171,25 @@ int main( int argc, char **argv )
     int                     total = -1;
     int                     count = 0;
     int                     spaces = 1;
-    char                    *user = NULL;
-    char                    pwd[255];
-    char                    *target;
-
     EDC_Parameter param;
-    param = processParameter(argc, argv);
+    
+    if (mysql_library_init(0, NULL, NULL)) //inizializza la CLI di my_sql
+    {
+        printf(NULL, "mysql_library_init() failed");
+        return 3;
+    }
 
-    printf("database = %s , ip = %s",param.dbDatabase, param.dbIP);
+    param.eibTarget = argv[1];
 
-
+    
+    
     //Connessione verso eibnetmux **********************************************
     enmx_version = enmx_init();
+
+ 
+    scanDestinatario(param.eibTarget);
+
+
     sock_con = enmx_open( param.eibTarget, "EDC" );
     if( sock_con < 0 )
     {
@@ -221,9 +197,9 @@ int main( int argc, char **argv )
         return -2;
     }
     // Autenticazione verso il server EIBnetumx
-    if( strcmp(param.eibUser, "") == 0 )
+    if( param.eibUser != 0 )
     {
-        if( getpassword( param.eibPwd ) != 0 )
+        if( param.eibPwd == 0 )
         {
             fprintf( stderr, "Error reading password - cannot continue\n" );
             return -6;
@@ -240,11 +216,7 @@ int main( int argc, char **argv )
     //**************************************************************************
 
 
-    if (mysql_library_init(0, NULL, NULL)) //inizializza la CLI di my_sql
-    {
-        printf(NULL, "mysql_library_init() failed");
-        return 3;
-    }
+
 
 
     buf = malloc( 27 );
@@ -262,8 +234,8 @@ int main( int argc, char **argv )
 
 
     
-    start_db_connection(&conn, param.dbUser,param.dbPwd,param.dbIP, param.dbPort, param.dbDatabase);
-
+    //start_db_connection(&conn, param.dbUser,param.dbPwd,param.dbIP, param.dbPort, param.dbDatabase);
+    start_db_connection(&conn, "root","labdomvinci","10.0.0.55", 3306, "konnex");
     
 
 
@@ -312,13 +284,7 @@ int main( int argc, char **argv )
             energia.data.day            = ltime->tm_mday;
             energia.data.year           = ltime->tm_year + 1900;
             energia.data.month          = ltime->tm_mon +1;
-            //energia.data.hour           = ltime->tm_hour;
-            //energia.data.minute         = ltime->tm_min;
-            
-            //energia.data.neg            = 0;
-            //energia.data.second         = ltime->tm_sec;
-            //energia.data.second_part    = (uint32_t)tv.tv_usec / 1000;
-            //energia.data.time_type;
+
 
 
             sprintf( energia.timestamp, "%02d:%02d:%02d:%03d", ltime->tm_hour, ltime->tm_min, ltime->tm_sec, (uint32_t)tv.tv_usec / 1000 );
@@ -433,4 +399,102 @@ int edc_frame2value( CEMIFRAME *cemiframe, long eis, float *returned )
         }
         default: return 1;
     }
+}
+
+
+void processParameterHelp()
+{
+            puts("-t      eibnetmuxTarget (ip:port)");
+            puts("-eu     eibnetmuxUser");
+            puts("-ep     eibnetmuxPwd");
+            puts("-ip     dbIpAddress");
+            puts("-port   dbPort");
+            puts("-user   dbUsername");
+            puts("-pwd    dbPassword");
+            puts("-db     databaseName");
+            exit(0);
+}
+
+
+EDC_Parameter processParameter(int argc, char** argv)
+{
+    /*  -t      eibnetmuxTarget (ip:port)
+     *  -eu     eibnetmuxUser
+     *  -ep     eibnetmuxPwd
+     *
+     *  -ip     dbIpAddress
+     *  -port   dbPort
+     *  -user   dbUsername
+     *  -pwd    dbPassword
+     *  -db     databaseName
+     */
+
+    if( argc == 1) processParameterHelp();
+
+    EDC_Parameter param;
+    param.dbDatabase = NULL;
+    param.dbPort = 0;
+    param.dbIP = NULL;
+    param.dbPwd = NULL;
+    param.dbUser = NULL;
+    param.eibPwd = NULL;
+    param.eibTarget = NULL;
+    param.eibUser = NULL;
+
+    int i;
+    for(i = 1; i < argc; i++)
+    {
+
+
+
+        if( strcmp(argv[i], "-t") == 0)
+        {
+            i++;
+
+            param.eibTarget = argv[i];
+        }
+        else if( strcmp(argv[i], "-eu") == 0)
+        {
+            i++;
+            param.eibUser = argv[i];
+        }
+        else if( strcmp(argv[i], "-ep") == 0)
+        {
+            i++;
+            param.eibPwd = argv[i];
+        }
+
+
+        else if( strcmp(argv[i], "-ip") == 0)
+        {
+            i++;
+            param.dbIP = argv[i];
+        }
+        else if( strcmp(argv[i], "-port") == 0)
+        {
+            i++;
+            param.dbPort = atoi(argv[i]);
+        }
+        else if( strcmp(argv[i], "-user") == 0)
+        {
+            i++;
+            param.dbUser =  argv[i];
+        }
+        else if( strcmp(argv[i], "-pwd") == 0)
+        {
+            i++;
+            param.dbPwd = argv[i];
+        }
+        else if( strcmp(argv[i], "-db") == 0)
+        {
+            i++;
+            param.dbDatabase = argv[i];
+        }
+        else if( strcmp(argv[i], "-?") == 0)
+        {
+            processParameterHelp();
+        }
+
+    }
+
 }
