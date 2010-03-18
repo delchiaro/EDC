@@ -1,4 +1,4 @@
-#include "prepared.c"
+
 #include "eibtrace.c"
 
 
@@ -20,82 +20,31 @@
 #include <eibnetmux/enmx_lib.h>
 #include "mylib.h"
 
+/*
+typedef struct
+{
+    enum Type { boolean, integer, floating };
+    union
+    {
+        my_bool boolean;
+        int integer;
+        float floating;
+    }value;
+    enum Type type;
+}Value;
+*/
+
+#include "prepared.c"
+
+
 
 int prepared ( char* user, char* pwd, char* ip, int porta, char* dbname, Energia energia);
+int edc_frame2value( CEMIFRAME *cemiframe, long eis, float *returned );
 
 
-int main( int argc, char **argv )
+/*
+int scanDestinatario(char *EIBtarget, char* EIBuser, char* EIBpwd, char DB)
 {
-    Energia energia;
-    
-    uint16_t                value_size;
-    struct timeval          tv;
-    struct tm               *ltime;
-    uint16_t                buflen;
-    unsigned char           *buf;
-    CEMIFRAME               *cemiframe;
-    int                     enmx_version;
-    int                     c;
-    int                     quiet = 0;
-    int                     total = -1;
-    int                     count = 0;
-    int                     spaces = 1;
-    char                    *user = NULL;
-    char                    pwd[255];
-    char                    *target;
-    char                    *eis_types;
-    int                     type;
-    int                     seconds;
-    unsigned char           value[20];
-    uint32_t                *p_int = 0;
-    double                  *p_real;
-
-    if (mysql_library_init(0, NULL, NULL)) //inizializza la CLI di my_sql
-    {
-        printf(NULL, "mysql_library_init() failed");
-        return 3;
-    }
-
-
-    opterr = 0;
-    while( ( c = getopt( argc, argv, "c:u:q" )) != -1 )
-    {
-        switch( c )
-        {
-            case 'c':
-                total = atoi( optarg );
-                break;
-            case 'u':
-                user = strdup( optarg );
-                break;
-            case 'q':
-                quiet = 1;
-                break;
-            default:
-                fprintf( stderr, "Invalid option: %c\n", c );
-                Usage( argv[0] );
-                exit( -1 );
-        }
-    }
-
-    if( optind == argc )
-    {
-        target = NULL;
-    } 
-    else if( optind + 1 == argc )
-    {
-        target = argv[optind];
-    } else {
-        Usage( argv[0] );
-        exit( -1 );
-    }
-
-    // catch signals for shutdown
-    signal( SIGINT, Shutdown );
-    signal( SIGTERM, Shutdown );
-
-    // request monitoring connection
-    enmx_version = enmx_init();
     sock_con = enmx_open( target, "eibtrace" );
     if( sock_con < 0 )
     {
@@ -104,20 +53,8 @@ int main( int argc, char **argv )
     }
 
 
-    // authenticate
-    if( user != NULL )
-    {
-        if( getpassword( pwd ) != 0 )
-        {
-            fprintf( stderr, "Error reading password - cannot continue\n" );
-            exit( -6 );
-        }
-        if( enmx_auth( sock_con, user, pwd ) != 0 )
-        {
-            fprintf( stderr, "Authentication failure\n" );
-            exit( -3 );
-        }
-    }
+
+
 
 
     if( quiet == 0 )
@@ -135,11 +72,201 @@ int main( int argc, char **argv )
         spaces = floor( log10( total )) +1;
     }
 
-    
-    Filtro *filtro;
-    MYSQL *conn;
-    initFiltro(filtro);
+
+    Filtro filtro ;
+    MYSQL *conn = NULL;
+
+    initFiltro(&filtro);
+
     start_db_connection(&conn, "root","labdomvinci","10.0.0.55", 3306, "konnex");
+
+    enmx_monitor( sock_con, 0xffff, buf, &buflen, &value_size );
+}*/
+
+typedef struct
+{
+    char eibTarget[23]; // IP:PORT
+    char eibUser[20];
+    char eibPwd[20];
+    char dbIP[16];
+    int dbPort;
+    char dbUser[20];
+    char dbPwd[20];
+    char dbDatabase[20];
+
+}EDC_Parameter;
+
+
+void processParameterHelp()
+{
+            puts("-t      eibnetmuxTarget (ip:port)");
+            puts("-eu     eibnetmuxUser");
+            puts("-ep     eibnetmuxPwd");
+            puts("-ip     dbIpAddress");
+            puts("-port   dbPort");
+            puts("-user   dbUsername");
+            puts("-pwd    dbPassword");
+            puts("-db     databaseName");
+            exit(0);
+}
+EDC_Parameter processParameter(int argc, char** argv)
+{
+    /*  -t      eibnetmuxTarget (ip:port)
+     *  -eu     eibnetmuxUser
+     *  -ep     eibnetmuxPwd
+     *
+     *  -ip     dbIpAddress
+     *  -port   dbPort
+     *  -user   dbUsername
+     *  -pwd    dbPassword
+     *  -db     databaseName
+     */
+    
+    if( argc == 1) processParameterHelp();
+    EDC_Parameter param;
+    strcpy(param.dbDatabase, "");
+    param.dbPort = 0;
+    strcpy(param.dbIP,"");
+    strcpy(param.dbPwd,"");
+    strcpy(param.dbUser,"");
+    strcpy(param.eibPwd,"");
+    strcpy(param.eibTarget,"");
+    strcpy(param.eibUser,"");
+    
+    int i;
+    for(i = 0; i < argc; i++)
+    {
+        if( strcmp(argv[i], "-t") == 0)
+        {
+            i++;
+            strcpy(param.eibTarget, argv[i]);
+        }
+        else if( strcmp(argv[i], "-eu") == 0)
+        {
+            i++;
+            strcpy(param.eibUser, argv[i]);
+        }
+        else if( strcmp(argv[i], "-ep") == 0)
+        {
+            i++;
+            strcpy(param.eibPwd, argv[i]);
+        }
+
+
+        else if( strcmp(argv[i], "-ip") == 0)
+        {
+            i++;
+            strcpy(param.dbIP, argv[i]);
+        }
+        else if( strcmp(argv[i], "-port") == 0)
+        {
+            i++;
+            strcpy(param.dbPort, atoi(argv[i]));
+        }
+        else if( strcmp(argv[i], "-user") == 0)
+        {
+            i++;
+            strcpy(param.dbUser, argv[i]);
+        }
+        else if( strcmp(argv[i], "-pwd") == 0)
+        {
+            i++;
+            strcpy(param.dbPwd, argv[i]);
+        }
+        else if( strcmp(argv[i], "-db") == 0)
+        {
+            i++;
+            strcpy(param.dbDatabase, argv[i]);
+        }
+        else if( strcmp(argv[i], "-?") == 0)
+        {
+            processParameterHelp();
+        }
+        
+    }
+    
+}
+
+int main( int argc, char **argv )
+{
+    Energia energia;
+    
+    uint16_t                value_size;
+    struct timeval          tv;
+    struct tm               *ltime;
+    uint16_t                buflen;
+    unsigned char           *buf;
+    CEMIFRAME               *cemiframe;
+    int                     enmx_version;
+
+    int                     total = -1;
+    int                     count = 0;
+    int                     spaces = 1;
+    char                    *user = NULL;
+    char                    pwd[255];
+    char                    *target;
+
+    EDC_Parameter param;
+    param = processParameter(argc, argv);
+
+    printf("database = %s , ip = %s",param.dbDatabase, param.dbIP);
+
+
+    //Connessione verso eibnetmux **********************************************
+    enmx_version = enmx_init();
+    sock_con = enmx_open( param.eibTarget, "EDC" );
+    if( sock_con < 0 )
+    {
+        fprintf( stderr, "Connect to eibnetmux failed (%d): %s\n", sock_con, enmx_errormessage( sock_con ));
+        return -2;
+    }
+    // Autenticazione verso il server EIBnetumx
+    if( strcmp(param.eibUser, "") == 0 )
+    {
+        if( getpassword( param.eibPwd ) != 0 )
+        {
+            fprintf( stderr, "Error reading password - cannot continue\n" );
+            return -6;
+        }
+
+        if( enmx_auth( sock_con, param.eibUser, param.eibPwd ) != 0 )
+        {
+            fprintf( stderr, "Authentication failure\n" );
+            return -3;
+        }
+    }
+
+    printf( "Connection to eibnetmux '%s' established\n", enmx_gethost( sock_con ));
+    //**************************************************************************
+
+
+    if (mysql_library_init(0, NULL, NULL)) //inizializza la CLI di my_sql
+    {
+        printf(NULL, "mysql_library_init() failed");
+        return 3;
+    }
+
+
+    buf = malloc( 27 );
+    buflen = 10;
+    if( total != -1 )
+    {
+        spaces = floor( log10( total )) +1;
+    }
+
+    
+    Filtro filtro ;
+    MYSQL *conn = NULL;
+
+    initFiltro(&filtro);
+
+
+    
+    start_db_connection(&conn, param.dbUser,param.dbPwd,param.dbIP, param.dbPort, param.dbDatabase);
+
+    
+
+
     while(1)
     {
 
@@ -201,57 +328,22 @@ int main( int argc, char **argv )
             str_unfill(energia.destinatario, ' ');
 
 
+            
             while( select_filtro(conn, energia.destinatario, &filtro) > 0 )
             {
                 
                 close_db_connection(&conn);
                 start_db_connection(&conn, "root","labdomvinci","10.0.0.55", 3306, "konnex");
             }
-           float vald, reversevald;
 
-         /* vald = (float) (cemiframe->data[0]<<24 | cemiframe->data[1]<<16 | cemiframe->data[2]<<8 | cemiframe->data[3]);
-          reversevald = (float) (cemiframe->data[3]<<24 | cemiframe->data[2]<<16 | cemiframe->data[1]<<8 | cemiframe->data[0]);
-          printf("\nval = %f\nrevers = %f\n", vald, reversevald);
-          */
-           int i;
-           for( i = 0; i < 16; i++)
-           {
-               printf("%x ", cemiframe->data[i]);
-           }
-           printf("\n");
+            //conversione dei dati:
 
+            float fl;
+            edc_frame2value( cemiframe, filtro.EIS, &fl );
 
-           float fl;
-           uint8_t* p1 = (uint8_t*)&fl;
-           *p1 = cemiframe->data[3];
-           p1++;
-           *p1 = cemiframe->data[2];
-           p1++;
-           *p1 = cemiframe->data[1];
-           p1++;
-           *p1 = cemiframe->data[0];
+            energia.valore = fl;
 
-           
-           //memmove( &fl,cemiframe->data,4);
-           printf("MY float = %f\n",fl);
-           printf("My int = %d\n",(int)fl);
-           printf("My bool = %d\n",cemiframe->apci);
-           
-/*            enmx_frame2value( filtro->EIS, cemiframe, value );
-
-
-            p_int = (uint32_t *)value;
-            p_real = (double *)value;
-           
-            energia.valore = *p_real;
-            printf("EIS = %d", filtro->EIS);
-            printf("value string = %s", value);
-            printf("\nvalue int = %d", *p_int);
-            printf("\nvalue bool = %d", *(my_bool*)value);
-            printf("\nvalue float = %f\n\n", *p_real);
-  */
-            
-            if( filtro->writable )
+            if( filtro.writable )
             {
                 while( insert_dati(conn, energia) > 0 )
                 {
@@ -259,6 +351,7 @@ int main( int argc, char **argv )
                     start_db_connection(conn, "root","labdomvinci","10.0.0.55", 3306, "konnex");
                 }
             }
+
         }
         
         //prepared( "root", "labdomvinci", "10.0.0.55", 3306, "konnex", energia);
@@ -267,4 +360,77 @@ int main( int argc, char **argv )
 
     mysql_library_end();//termina la libreria mysql
     return( 0 );
+}
+
+
+
+int edc_frame2value( CEMIFRAME *cemiframe, long eis, float *returned )
+{
+    /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+     *  return 0: no errors                                                  *
+     *  return 1: EIS non identificato                                       *
+     *  return 2: EIS non gestito da questa funzione                         *
+     *
+     *
+     *
+     *
+     *
+     *
+     *
+     * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
+    printf("EIS = %d\n", eis);
+
+    switch( eis )
+    {
+        //conversione bool 1 byte:
+        case 1:
+        case 2:
+        case 7:
+        case 8:
+        {
+            if( cemiframe->apci == 128 ) *returned = 0.0;
+            else *returned = 1.0;
+
+            printf("APCI = %d\n", cemiframe->apci -128 );
+            printf("valore = %f\n", *returned );
+            break;
+        }
+
+        //conversione int 2 byte
+        case 6:
+        case 14:
+        {
+            enmx_frame2value(eis, cemiframe, (void*)&returned);
+            break;
+        }
+
+
+        //conversione floaot 2byte
+        case 5:
+
+        //conversione floaot 4byte
+        case 9:
+        case 10:
+        case 11:
+        case 12:
+        {
+            uint8_t* p1 = (uint8_t*)returned;
+           *p1 = cemiframe->data[3];
+           p1++;
+           *p1 = cemiframe->data[2];
+           p1++;
+           *p1 = cemiframe->data[1];
+           p1++;
+           *p1 = cemiframe->data[0];
+            break;
+        }
+        case 3:
+        case 4:
+        {
+            //data e ora
+            return 2;
+        }
+        default: return 1;
+    }
 }

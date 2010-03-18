@@ -14,11 +14,14 @@ typedef struct
     my_bool writable;
 } Filtro;
 
-void initFiltro(Filtro *toInit)
+typedef struct
 {
-    toInit->EIS = 0;
-    toInit->writable = 0;
-}
+    long EIS;
+    my_bool writable;
+    char destinatario[10];
+    char descrizione[51];
+}FiltroInsert;
+
 
 typedef struct
 {
@@ -26,15 +29,88 @@ typedef struct
     char timestamp[16];
     char mittente[10];
     char destinatario[10];
-    double valore;
+    float valore;
 } Energia;
 
 
+void initFiltro(Filtro *toInit)
+{
+    toInit->EIS = 0;
+    toInit->writable = 0;
+}
+
+
+
 static int insert_dati( MYSQL *conn, Energia toWrite );
-static int select_filtro ( MYSQL *conn, char* destinatario, Filtro** filtro);
+static int select_filtro ( MYSQL *conn, char* destinatario, Filtro* filtro);
 
 
 
+static int insert_filtro( MYSQL *conn, FiltroInsert toWrite )
+{
+    MYSQL_STMT *stmt;
+    process_prepared_statements(conn, &stmt);
+    char *stmt_str = "INSERT INTO filtro (Destinatario, Writable, EIS, Descrizione) VALUES(?,?,?,?)";
+
+  // my_bool is_null[5];
+   MYSQL_BIND param[5];
+
+  printf ("Inserting records... ");
+
+
+  if (mysql_stmt_prepare (stmt, stmt_str, strlen (stmt_str)) != 0)
+  {
+    print_stmt_error (stmt, "Could not prepare INSERT statement");
+    return 1;
+  }
+
+
+  memset ((void *) param, 0, sizeof (param)); //setto a 0 tutti i bit
+
+
+  //definisco il tipo del campo, un puntatore al valore da scrivere nel campo e altro.
+  param[0].buffer_type = MYSQL_TYPE_STRING;
+  param[0].buffer = (void *) &toWrite.destinatario;
+  param[0].buffer_length = strlen(toWrite.destinatario);
+  param[0].is_null = 0;
+
+  param[1].buffer_type = MYSQL_TYPE_BIT;
+  param[1].buffer = (void *) toWrite.writable;
+  param[1].is_null = 0;
+
+  param[2].buffer_type = MYSQL_TYPE_LONG;
+  param[2].buffer_length = 4;
+  param[2].buffer = (void *) &(toWrite.EIS);
+  param[2].is_null = 0;
+
+
+  param[3].buffer_type = MYSQL_TYPE_STRING;
+  param[3].buffer = (void *) &toWrite.descrizione;
+  param[3].buffer_length = strlen(toWrite.descrizione);
+  param[3].is_null = 0;
+
+
+
+
+
+  if (mysql_stmt_bind_param (stmt, param) != 0)// inserisco i parametri nello statment al posto dei '?'
+  {
+    print_stmt_error (stmt, "Could not bind parameters for INSERT");
+    return 2;
+  }
+
+
+   if (mysql_stmt_execute (stmt) != 0)
+   {
+      print_stmt_error (stmt, "Could not execute statement");
+      return 3;
+   }
+
+
+   else printf ("Statment execution success: record inserting in table SUCCESS!\n");
+   mysql_stmt_close(stmt); /* deallocate statement handler */
+
+}
 
 static int insert_dati( MYSQL *conn, Energia toWrite )
 {
@@ -42,7 +118,7 @@ static int insert_dati( MYSQL *conn, Energia toWrite )
     process_prepared_statements(conn, &stmt);
     char *stmt_str = "INSERT INTO dati (Data,Timestamp,Mittente,Destinatario,Valore) VALUES(?,?,?,?,?)";
 
-
+  // my_bool is_null[5];
    MYSQL_BIND param[5];
 
   printf ("Inserting records... ");
@@ -80,9 +156,11 @@ static int insert_dati( MYSQL *conn, Energia toWrite )
   param[3].buffer_length = strlen(toWrite.destinatario);
   param[3].is_null = 0;
 
-  param[4].buffer_type = MYSQL_TYPE_DOUBLE;
-  param[4].buffer = (void *) &toWrite.valore;
+
+  param[4].buffer_type = MYSQL_TYPE_FLOAT;
+  param[4].buffer = (void*)&toWrite.valore;
   param[4].buffer_length = sizeof(toWrite.valore);
+  param[4].is_unsigned =  0;
   param[4].is_null = 0;
 
 
@@ -95,12 +173,12 @@ static int insert_dati( MYSQL *conn, Energia toWrite )
   }
 
 
-
    if (mysql_stmt_execute (stmt) != 0)
    {
       print_stmt_error (stmt, "Could not execute statement");
       return 3;
    }
+  
 
    else printf ("Statment execution success: record inserting in table SUCCESS!\n");
    mysql_stmt_close(stmt); /* deallocate statement handler */
@@ -112,7 +190,7 @@ static void free_filtro( Filtro* filtro)
 {
     if( filtro != NULL )free(filtro);
 }
-static int select_filtro ( MYSQL *conn, char* destinatario, Filtro** filtro)
+static int select_filtro ( MYSQL *conn, char* destinatario, Filtro* filtro)
 {
     MYSQL_STMT *stmt;
 
@@ -126,7 +204,7 @@ static int select_filtro ( MYSQL *conn, char* destinatario, Filtro** filtro)
 
     MYSQL_BIND param[2];
     my_bool is_null[2];
-    *filtro = (Filtro*) malloc(sizeof(Filtro));
+
     
 
     printf("query = %s\n",stmt_str);
@@ -146,12 +224,12 @@ static int select_filtro ( MYSQL *conn, char* destinatario, Filtro** filtro)
 
   param[0].buffer_type = MYSQL_TYPE_BIT;
   param[0].buffer_length = 1;
-  param[0].buffer = (void *) &((*filtro)->writable);
+  param[0].buffer = (void *) &(filtro->writable);
   param[0].is_null = &is_null[0];
 
   param[1].buffer_type = MYSQL_TYPE_LONG;
   param[1].buffer_length = 4;
-  param[1].buffer = (void *) &((*filtro)->EIS);
+  param[1].buffer = (void *) &(filtro->EIS);
   param[1].is_null = &is_null[1];
 
 
@@ -181,8 +259,8 @@ static int select_filtro ( MYSQL *conn, char* destinatario, Filtro** filtro)
     
     if(num_rows == 0 )
     {
-        (*filtro)->writable = 0;
-        (*filtro)->EIS = 0;
+        filtro->writable = 0;
+        filtro->EIS = 0;
     }
   }
 
@@ -190,7 +268,7 @@ static int select_filtro ( MYSQL *conn, char* destinatario, Filtro** filtro)
   while (mysql_stmt_fetch (stmt) == 0) // fetch each row
   {
     //display row values
-     printf("writable = %d\n", (*filtro)->writable);
+     printf("writable = %d\n", filtro->writable);
   }
 
 

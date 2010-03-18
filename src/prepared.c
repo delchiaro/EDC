@@ -46,6 +46,7 @@ int start_db_connection(MYSQL **conn, char* user, char* pwd, char* ip, int porta
         return 1;
     }
 
+
 }
 //    process_prepared_statements(conn, energia);
 
