@@ -1,6 +1,0 @@
-1) Installare netbeans 6.7.1 
-2) Installare i pacchetti presenti nella cartella "dipendenze"
-3) Installare il pacchetto libmysqlclient-dev ( $ sudo apt-get install libmysqlclient-dev )
-4) Aprire netbeans
-5) File -> Open project -> seleziona la cartella del progetto scaricato e premere ok
-(ci dovrebbe essere un ingranaggio nella selezione cartella di netbeans se quella cartella é una cartella-progetto)

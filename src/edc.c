@@ -119,7 +119,7 @@ int scanDestinatario(char *target)
             sprintf( destinatario, "%8s", (cemiframe->ntwrk & EIB_DAF_GROUP) ? knx_group( cemiframe->daddr ) : knx_physical( cemiframe->daddr ));
             str_unfill(destinatario, ' ');
 
-            puts("debug,,,,,1111111");
+
             puts(target);
 
             Filtro filtro;
@@ -187,7 +187,7 @@ int main( int argc, char **argv )
     enmx_version = enmx_init();
 
  
-    scanDestinatario(param.eibTarget);
+    //scanDestinatario(param.eibTarget);
 
 
     sock_con = enmx_open( param.eibTarget, "EDC" );
@@ -196,21 +196,7 @@ int main( int argc, char **argv )
         fprintf( stderr, "Connect to eibnetmux failed (%d): %s\n", sock_con, enmx_errormessage( sock_con ));
         return -2;
     }
-    // Autenticazione verso il server EIBnetumx
-    if( param.eibUser != 0 )
-    {
-        if( param.eibPwd == 0 )
-        {
-            fprintf( stderr, "Error reading password - cannot continue\n" );
-            return -6;
-        }
 
-        if( enmx_auth( sock_con, param.eibUser, param.eibPwd ) != 0 )
-        {
-            fprintf( stderr, "Authentication failure\n" );
-            return -3;
-        }
-    }
 
     printf( "Connection to eibnetmux '%s' established\n", enmx_gethost( sock_con ));
     //**************************************************************************
@@ -305,17 +291,22 @@ int main( int argc, char **argv )
             //conversione dei dati:
 
             float fl;
-            edc_frame2value( cemiframe, filtro.EIS, &fl );
-
-            energia.valore = fl;
-
-            if( filtro.writable )
+            if( edc_frame2value( cemiframe, filtro.EIS, &fl ) == 0 )
             {
-                while( insert_dati(conn, energia) > 0 )
+                energia.valore = fl;
+
+                if( filtro.writable )
                 {
-                    close_db_connection(conn);
-                    start_db_connection(conn, "root","labdomvinci","10.0.0.55", 3306, "konnex");
+                    while( insert_dati(conn, energia) > 0 )
+                    {
+                         close_db_connection(conn);
+                         start_db_connection(conn, "root","labdomvinci","10.0.0.55", 3306, "konnex");
+                    }
                 }
+            }
+            else
+            {
+                printf("Conversione valore impossibile**\n");
             }
 
         }
@@ -360,25 +351,36 @@ int edc_frame2value( CEMIFRAME *cemiframe, long eis, float *returned )
 
             printf("APCI = %d\n", cemiframe->apci -128 );
             printf("valore = %f\n", *returned );
-            break;
+            return 0;
         }
 
-        //conversione int 2 byte
-        case 6:
-        case 14:
+
+        //conversione int 1 - 2 - 4 byte
+        case 6:  //1 byte
+        case 11: //4 byte
+        case 14: //1 byte
         {
-            enmx_frame2value(eis, cemiframe, (void*)&returned);
-            break;
+            int value;
+            enmx_frame2value(eis, cemiframe, (void*)&value);
+            *returned = value;
+            return 0;
         }
 
 
-        //conversione floaot 2byte
+        //conversione float 2byte
         case 5:
+        {
+            unsigned char value[20];
+            double *f;
+            f = (double *)value;
+            enmx_frame2value(eis, cemiframe, value);
+            *returned = *f;
+            return 0;
+        }
 
         //conversione floaot 4byte
         case 9:
         case 10:
-        case 11:
         case 12:
         {
             uint8_t* p1 = (uint8_t*)returned;
@@ -389,17 +391,63 @@ int edc_frame2value( CEMIFRAME *cemiframe, long eis, float *returned )
            *p1 = cemiframe->data[1];
            p1++;
            *p1 = cemiframe->data[0];
-            break;
+            return 0;
         }
         case 3:
         case 4:
         {
             //data e ora
+            printf("ERRORE EIS DATA NON CONVERTIBILE\n");
             return 2;
         }
-        default: return 1;
+        default:
+        {
+            printf("ERRORE EIS NON RICONOSCIUTO\n");
+            return 1;
+        }
     }
+    return 0;
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 void processParameterHelp()
@@ -414,6 +462,36 @@ void processParameterHelp()
             puts("-db     databaseName");
             exit(0);
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 EDC_Parameter processParameter(int argc, char** argv)
