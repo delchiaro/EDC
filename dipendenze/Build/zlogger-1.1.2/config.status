@@ -363,11 +363,11 @@ Copyright (C) 2008 Free Software Foundation, Inc.
 This config.status script is free software; the Free Software Foundation
 gives unlimited permission to copy, distribute and modify it."
 
-ac_pwd='/home/nagash/eibnetmux_domotica_client/dipendenze/Build/zlogger-1.1.2'
+ac_pwd='/home/nagash/EDC/dipendenze/Build/zlogger-1.1.2'
 srcdir='.'
 INSTALL='/usr/bin/install -c'
 MKDIR_P='/bin/mkdir -p'
-AWK='mawk'
+AWK='gawk'
 test -n "$AWK" || AWK=awk
 # The default lists apply if the user does not specify any file.
 ac_need_defaults=:
@@ -559,15 +559,15 @@ S["HAVE_PLUGINS_FALSE"]="#"
 S["HAVE_PLUGINS_TRUE"]=""
 S["LIBOBJS"]=""
 S["LIBTOOL"]="$(SHELL) $(top_builddir)/libtool"
-S["ac_ct_F77"]="gfortran"
-S["FFLAGS"]="-g -O2"
-S["F77"]="gfortran"
-S["CXXCPP"]="g++ -E"
-S["am__fastdepCXX_FALSE"]="#"
-S["am__fastdepCXX_TRUE"]=""
-S["CXXDEPMODE"]="depmode=gcc3"
-S["ac_ct_CXX"]="g++"
-S["CXXFLAGS"]="-g -O2"
+S["ac_ct_F77"]=""
+S["FFLAGS"]=""
+S["F77"]=""
+S["CXXCPP"]=""
+S["am__fastdepCXX_FALSE"]=""
+S["am__fastdepCXX_TRUE"]="#"
+S["CXXDEPMODE"]="depmode=none"
+S["ac_ct_CXX"]=""
+S["CXXFLAGS"]=""
 S["CXX"]="g++"
 S["NMEDIT"]=""
 S["DSYMUTIL"]=""
@@ -605,20 +605,20 @@ S["build_cpu"]="i686"
 S["build"]="i686-pc-linux-gnu"
 S["am__untar"]="${AMTAR} xf -"
 S["am__tar"]="${AMTAR} chof - \"$$tardir\""
-S["AMTAR"]="${SHELL} /home/nagash/eibnetmux_domotica_client/dipendenze/Build/zlogger-1.1.2/scripts/missing --run tar"
+S["AMTAR"]="${SHELL} /home/nagash/EDC/dipendenze/Build/zlogger-1.1.2/scripts/missing --run tar"
 S["am__leading_dot"]="."
 S["SET_MAKE"]=""
-S["AWK"]="mawk"
+S["AWK"]="gawk"
 S["mkdir_p"]="/bin/mkdir -p"
 S["MKDIR_P"]="/bin/mkdir -p"
 S["INSTALL_STRIP_PROGRAM"]="$(install_sh) -c -s"
 S["STRIP"]="strip"
-S["install_sh"]="$(SHELL) /home/nagash/eibnetmux_domotica_client/dipendenze/Build/zlogger-1.1.2/scripts/install-sh"
-S["MAKEINFO"]="${SHELL} /home/nagash/eibnetmux_domotica_client/dipendenze/Build/zlogger-1.1.2/scripts/missing --run makeinfo"
-S["AUTOHEADER"]="${SHELL} /home/nagash/eibnetmux_domotica_client/dipendenze/Build/zlogger-1.1.2/scripts/missing --run autoheader"
-S["AUTOMAKE"]="${SHELL} /home/nagash/eibnetmux_domotica_client/dipendenze/Build/zlogger-1.1.2/scripts/missing --run automake-1.10"
-S["AUTOCONF"]="${SHELL} /home/nagash/eibnetmux_domotica_client/dipendenze/Build/zlogger-1.1.2/scripts/missing --run autoconf"
-S["ACLOCAL"]="${SHELL} /home/nagash/eibnetmux_domotica_client/dipendenze/Build/zlogger-1.1.2/scripts/missing --run aclocal-1.10"
+S["install_sh"]="$(SHELL) /home/nagash/EDC/dipendenze/Build/zlogger-1.1.2/scripts/install-sh"
+S["MAKEINFO"]="${SHELL} /home/nagash/EDC/dipendenze/Build/zlogger-1.1.2/scripts/missing --run makeinfo"
+S["AUTOHEADER"]="${SHELL} /home/nagash/EDC/dipendenze/Build/zlogger-1.1.2/scripts/missing --run autoheader"
+S["AUTOMAKE"]="${SHELL} /home/nagash/EDC/dipendenze/Build/zlogger-1.1.2/scripts/missing --run automake-1.10"
+S["AUTOCONF"]="${SHELL} /home/nagash/EDC/dipendenze/Build/zlogger-1.1.2/scripts/missing --run autoconf"
+S["ACLOCAL"]="${SHELL} /home/nagash/EDC/dipendenze/Build/zlogger-1.1.2/scripts/missing --run aclocal-1.10"
 S["VERSION"]="1.1.2"
 S["PACKAGE"]="zlogger"
 S["CYGPATH_W"]="echo"

@@ -17,10 +17,17 @@ cd ..
 
 cd eibnetmux-1.9.14
 ./configure
-make all
+make
+sudo make install
 cd eibnetmux
-make all
+make
+sudo make install
 cd ..
 
 cd client_lib
 make
+sudo make install
+
+sudo apt-get install g++
+sudo apt-get install libmysql++-dev
+sudo apt-get install libmysqld-dev

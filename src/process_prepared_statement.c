@@ -8,24 +8,24 @@ static void print_error(MYSQL *conn, char *msg);
 
 int process_prepared_statements(MYSQL *conn, MYSQL_STMT **stmt);
 
-typedef struct
+struct Filtro
 {
     my_bool valid;
     long EIS;
     my_bool writable;
-} Filtro;
+} ;
 
 
 
 
-typedef struct
+struct Energia
 {
     MYSQL_TIME data;
     char timestamp[16];
     char mittente[10];
     char destinatario[10];
     float valore;
-} Energia;
+};
 
 
 void initFiltro(Filtro *toInit)

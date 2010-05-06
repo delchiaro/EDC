@@ -511,12 +511,12 @@ s,@ac_ct_RANLIB@,ranlib,;t t
 s,@STRIP@,strip,;t t
 s,@ac_ct_STRIP@,strip,;t t
 s,@CXX@,g++,;t t
-s,@CXXFLAGS@,-g -O2,;t t
+s,@CXXFLAGS@,,;t t
 s,@ac_ct_CXX@,g++,;t t
-s,@CXXCPP@,g++ -E,;t t
-s,@F77@,f95,;t t
-s,@FFLAGS@,-g -O2,;t t
-s,@ac_ct_F77@,f95,;t t
+s,@CXXCPP@,,;t t
+s,@F77@,,;t t
+s,@FFLAGS@,,;t t
+s,@ac_ct_F77@,,;t t
 s,@LIBTOOL@,$(SHELL) $(top_builddir)/libtool,;t t
 s,@PTH_FDSETSIZE@,1024,;t t
 s,@PTH_FAKE_POLL@,0,;t t

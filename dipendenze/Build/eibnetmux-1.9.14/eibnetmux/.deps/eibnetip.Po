@@ -2,10 +2,10 @@ eibnetip.o: eibnetip.c ../config.h /usr/include/stdio.h \
  /usr/include/features.h /usr/include/bits/predefs.h \
  /usr/include/sys/cdefs.h /usr/include/bits/wordsize.h \
  /usr/include/gnu/stubs.h /usr/include/gnu/stubs-32.h \
- /usr/lib/gcc/i486-linux-gnu/4.4.1/include/stddef.h \
+ /usr/lib/gcc/i486-linux-gnu/4.4.3/include/stddef.h \
  /usr/include/bits/types.h /usr/include/bits/typesizes.h \
  /usr/include/libio.h /usr/include/_G_config.h /usr/include/wchar.h \
- /usr/lib/gcc/i486-linux-gnu/4.4.1/include/stdarg.h \
+ /usr/lib/gcc/i486-linux-gnu/4.4.3/include/stdarg.h \
  /usr/include/bits/stdio_lim.h /usr/include/bits/sys_errlist.h \
  /usr/include/bits/stdio.h /usr/include/bits/stdio2.h \
  /usr/include/string.h /usr/include/xlocale.h /usr/include/bits/string.h \
@@ -25,10 +25,12 @@ eibnetip.o: eibnetip.c ../config.h /usr/include/stdio.h \
  /usr/include/bits/wchar.h /usr/include/sys/socket.h \
  /usr/include/sys/uio.h /usr/include/bits/uio.h \
  /usr/include/bits/socket.h /usr/include/bits/sockaddr.h \
- /usr/include/asm/socket.h /usr/include/asm/sockios.h \
+ /usr/include/asm/socket.h /usr/include/asm-generic/socket.h \
+ /usr/include/asm/sockios.h /usr/include/asm-generic/sockios.h \
  /usr/include/bits/socket2.h /usr/include/bits/in.h \
  /usr/include/sys/ioctl.h /usr/include/bits/ioctls.h \
- /usr/include/asm/ioctls.h /usr/include/asm/ioctl.h \
+ /usr/include/asm/ioctls.h /usr/include/asm-generic/ioctls.h \
+ /usr/include/linux/ioctl.h /usr/include/asm/ioctl.h \
  /usr/include/asm-generic/ioctl.h /usr/include/bits/ioctl-types.h \
  /usr/include/sys/ttydefaults.h /usr/include/net/if.h \
  /usr/local/include/pth.h /usr/include/sys/time.h \
@@ -60,7 +62,7 @@ eibnetip.o: eibnetip.c ../config.h /usr/include/stdio.h \
 
 /usr/include/gnu/stubs-32.h:
 
-/usr/lib/gcc/i486-linux-gnu/4.4.1/include/stddef.h:
+/usr/lib/gcc/i486-linux-gnu/4.4.3/include/stddef.h:
 
 /usr/include/bits/types.h:
 
@@ -72,7 +74,7 @@ eibnetip.o: eibnetip.c ../config.h /usr/include/stdio.h \
 
 /usr/include/wchar.h:
 
-/usr/lib/gcc/i486-linux-gnu/4.4.1/include/stdarg.h:
+/usr/lib/gcc/i486-linux-gnu/4.4.3/include/stdarg.h:
 
 /usr/include/bits/stdio_lim.h:
 
@@ -156,7 +158,11 @@ eibnetip.o: eibnetip.c ../config.h /usr/include/stdio.h \
 
 /usr/include/asm/socket.h:
 
+/usr/include/asm-generic/socket.h:
+
 /usr/include/asm/sockios.h:
+
+/usr/include/asm-generic/sockios.h:
 
 /usr/include/bits/socket2.h:
 
@@ -167,6 +173,10 @@ eibnetip.o: eibnetip.c ../config.h /usr/include/stdio.h \
 /usr/include/bits/ioctls.h:
 
 /usr/include/asm/ioctls.h:
+
+/usr/include/asm-generic/ioctls.h:
+
+/usr/include/linux/ioctl.h:
 
 /usr/include/asm/ioctl.h:
 
