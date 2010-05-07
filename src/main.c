@@ -24,22 +24,32 @@
 
 typedef struct
 {
-    char *eibTarget; // IP:PORT
-    char *eibUser;
-    char *eibPwd;
-    char *dbIP;
+    char eibTarget[37]; // IP:PORT
+    char eibUser[50];
+    char eibPwd[50];
+    char dbIP[30];
     int dbPort;
-    char *dbUser;
-    char *dbPwd;
-    char *dbDatabase;
+    char dbUser[50];
+    char dbPwd[50];
+    char dbDatabase[50];
 
 }EDC_Parameter;
-//non è ancora implementata la funzione per la parametrizzazione che utilizzerà questa struttura dati
 
+void init_EDC_Parameter(EDC_Parameter *param)
+{
+    strcpy(param->dbDatabase, "");
+    param->dbPort = 0;
+    strcpy(param->dbIP, "");
+    strcpy(param->dbPwd, "");
+    strcpy(param->dbUser, "");
+    strcpy(param->eibPwd, "");
+    strcpy(param->eibTarget, "");
+    strcpy(param->eibUser, "");
+}
 
 void processParameterHelp();
 EDC_Parameter processParameter(int argc, char** argv);
-
+EDC_Parameter processParameterFile(char* path);
 
 
 int main( int argc, char **argv )
@@ -305,15 +315,16 @@ int edc_frame2value( CEMIFRAME *cemiframe, long eis, float *returned )
 
 void processParameterHelp()
 {
-            puts("-t      eibnetmuxTarget (ip:port)");
-            puts("-eu     eibnetmuxUser");
-            puts("-ep     eibnetmuxPwd");
-            puts("-ip     dbIpAddress");
-            puts("-port   dbPort");
-            puts("-user   dbUsername");
-            puts("-pwd    dbPassword");
-            puts("-db     databaseName");
-            exit(0);
+    puts("-f      configFilePath");
+    puts("-t      eibnetmuxTarget (ip:port)");
+    puts("-eu     eibnetmuxUser");
+    puts("-ep     eibnetmuxPwd");
+    puts("-ip     dbIpAddress");
+    puts("-port   dbPort");
+    puts("-user   dbUsername");
+    puts("-pwd    dbPassword");
+    puts("-db     databaseName");
+    puts("\n\nDefault: -f settings.eds");
 }
 
 
@@ -330,73 +341,79 @@ EDC_Parameter processParameter(int argc, char** argv)
      *  -db     databaseName
      */
     EDC_Parameter param;
-    if( argc <= 1) processParameterHelp();
+    init_EDC_Parameter(&param);
+
+    if( argc <= 1)
+    {
+        processParameterHelp();
+        param = processParameterFile("settings.eds");
+    }
     else
     {
 
-        param.dbDatabase = NULL;
-        param.dbPort = 0;
-        param.dbIP = NULL;
-        param.dbPwd = NULL;
-        param.dbUser = NULL;
-        param.eibPwd = NULL;
-        param.eibTarget = NULL;
-        param.eibUser = NULL;
+
 
         int i;
         for(i = 1; i < argc; i++)
         {
 
 
-
+            if( strcmp(argv[i], "-f") == 0)
+            {
+                i++;
+                param = processParameterFile(argv[i]);
+            }
             if( strcmp(argv[i], "-t") == 0)
             {
                 i++;
-
-                param.eibTarget = argv[i];
+                strcpy(param.eibTarget,argv[i]);
             }
             else if( strcmp(argv[i], "-eu") == 0)
             {
                 i++;
-                param.eibUser = argv[i];
+                strcpy(param.eibUser, argv[i]);
             }
             else if( strcmp(argv[i], "-ep") == 0)
             {
                 i++;
-                param.eibPwd = argv[i];
+                strcpy(param.eibPwd , argv[i]);
             }
 
 
             else if( strcmp(argv[i], "-ip") == 0)
             {
                 i++;
-                param.dbIP = argv[i];
+                strcpy(param.dbIP , argv[i]);
             }
+
             else if( strcmp(argv[i], "-port") == 0)
             {
                 i++;
                 param.dbPort = atoi(argv[i]);
-                i++;
-                i--;
             }
+
             else if( strcmp(argv[i], "-user") == 0)
             {
                 i++;
-                param.dbUser =  argv[i];
+                strcpy(param.dbUser ,  argv[i]);
             }
+
             else if( strcmp(argv[i], "-pwd") == 0)
             {
                 i++;
-                param.dbPwd = argv[i];
+                strcpy(param.dbPwd , argv[i]);
             }
+
             else if( strcmp(argv[i], "-db") == 0)
             {
                 i++;
-                param.dbDatabase = argv[i];
+                strcpy(param.dbDatabase, argv[i]);
             }
+
             else if( strcmp(argv[i], "-?") == 0)
             {
                 processParameterHelp();
+                exit(0);
             }
 
         }
@@ -406,6 +423,103 @@ EDC_Parameter processParameter(int argc, char** argv)
 
 }
 
+
+EDC_Parameter processParameterFile(char* path)
+{
+    /* 
+     EDC_CONFIG_FILE 0.1
+     dbname:  <dbname>
+     dbhost:  <dbhost>
+     dbport:  <dbport>
+     dbuser:  <dbUser>
+     dbpwd:   <dbpwd>
+     
+     eibpwd:  <eibnetmuxPwd>
+     eibuser: <eibnetmuxUser>
+     eibtarget:   <eibHost:eibPort>
+
+     * le righe possono essere inserite in qualsiasi ordine, ma il file deve iniziarecon EDC_CONFIG_FILE versione
+     */
+    EDC_Parameter param;
+    init_EDC_Parameter(&param);
+        
+    FILE* file = NULL;
+    file = fopen(path, "r");
+    if( file == NULL)
+    {
+        printf("CANNOT OPEN FILE: NO FILE OR INACCESSIBLE FILE");
+        exit(1);
+    }
+    char buf[100];
+    char buf2[100];
+    char bufversion[10];
+    double version;
+
+
+    fscanf(file, "%s %s", buf, bufversion);
+    if( strcmp(buf, "EDC_CONFIG_FILE") == 0 )
+    {
+        version = atof(bufversion);
+        while( !feof(file) )
+        {
+            fscanf(file, "%s %s", buf, buf2);
+            if(strcmp(buf, "dbname:") == 0)
+            {
+                strcpy( param.dbDatabase, buf2);
+            }
+
+            else if(strcmp(buf, "dbhost:") == 0)
+            {
+                strcpy( param.dbIP, buf2);
+            }
+
+            else if(strcmp(buf, "dbport:") == 0)
+            {
+                param.dbPort = atoi(buf2);
+            }
+
+            else if(strcmp(buf, "dbuser:") == 0)
+            {
+                strcpy( param.dbUser, buf2);
+            }
+
+            else if(strcmp(buf, "dbpwd:") == 0)
+            {
+                strcpy( param.dbPwd, buf2);
+            }
+
+            else if(strcmp(buf, "eibuser:") == 0)
+            {
+                strcpy( param.eibUser, buf2);
+            }
+
+            else if(strcmp(buf, "eibpwd:") == 0)
+            {
+                strcpy( param.eibPwd, buf2);
+            }
+
+            else if(strcmp(buf, "eibtarget:") == 0)
+            {
+                strcpy( param.eibTarget, buf2);
+            }
+
+            else
+            {
+                printf("ERROR WHILE PARSING FILE");
+                exit(1);
+            }
+            
+            
+        }
+    }
+    else
+    {
+        printf("FILE HEADER DON'T FOUND");
+        exit(1);
+    }
+
+    return param;
+}
 
 
 

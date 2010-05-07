@@ -1,4 +1,4 @@
-Installare ubuntu (noi abbiamo usato ubuntu 9.10).
+Installare ubuntu. Noi abbiamo iniziato il progetto nella versione 9.10, poi siamo passati alla 10.04. Abbiamo compilato con successo il progetto anche sullo sheevaplug (un plug computer) che ha come OS ubuntu 9.04.
 
 -A questo punto installare git con il comando: sudo apt-get install git-core
 -Creare una cartella EDC nella home (da terminale: mkdir EDC)
@@ -9,7 +9,7 @@ Installare ubuntu (noi abbiamo usato ubuntu 9.10).
  Dove al posto di <progetto.git> metteremo l'indirizzo del progetto.
  Per ora l'indirizzo del progetto è   git://github.com/nagash91/EDC.git
 
--Eseguire il comando "git pull origin master" per prelevare il breanch "master" dal progetto "origin" che abbiamo settato precedentemente. A questo punto abbiamo scaricato il progetto in locale.
+-Eseguire il comando "git pull origin master" per prelevare il branch "master" dalla sorgente "origin" che abbiamo settato precedentemente. A questo punto abbiamo scaricato il progetto in locale.
 
 
 -eseguire il file "install.sh" presente nella cartella ../EDC/dipendenze
@@ -34,4 +34,4 @@ Installare ubuntu (noi abbiamo usato ubuntu 9.10).
 
 -L'IDE utilizzato è netBeans 6.8 Installarlo per aprire il progetto con l'IDE
 
-NB: Il pacchetto di eibnetmux è stato modificato per essere compilato sotto ubuntu senza problemi. Il pacchetto originale scaricabile da internet è fatto per un'altra distribuzione linux. Sostanzialmente abbiamo eliminato la clausa -werror poichè su linux la compilazione di eibnetmux genera dei warning e con -werror vengano considerati errori. In questo modo riusciamo a compilare con successo anche se con qualche warning.
+NB: Il pacchetto di eibnetmux è stato modificato per essere compilato sotto ubuntu senza problemi. Il pacchetto originale scaricabile da internet è fatto per un'altra distribuzione linux. Sostanzialmente abbiamo eliminato la clausa -werror da tutti i makefile poichè su ubuntu la compilazione di eibnetmux genera dei warning e con -werror vengano considerati errori. In questo modo riusciamo a compilare con successo la libreria eibnetmux anche se con qualche warning.

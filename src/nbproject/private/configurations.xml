@@ -12,7 +12,7 @@
         <configurationname>GizmoSimple</configurationname>
       </gizmo_options>
       <runprofile version="6">
-        <args>-t localhost:4390 -eu root -ep pass -ip dbhost -port 1234 -user dbuser -pwd dbpwd -db dbname</args>
+        <args>-f /home/nagash/EDC/src/dist/Debug/GNU-Linux-x86/settings.eds</args>
         <rundir></rundir>
         <buildfirst>true</buildfirst>
         <console-type>0</console-type>
