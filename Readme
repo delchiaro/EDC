@@ -1,0 +1,37 @@
+Installare ubuntu (noi abbiamo usato ubuntu 9.10).
+
+-A questo punto installare git con il comando: sudo apt-get install git-core
+-Creare una cartella EDC nella home (da terminale: mkdir EDC)
+-Entrare col terminale nella cartella: cd EDC
+-Dare il comando "git init" per inizializzare il repository git nella cartella EDC
+-Dare il comando:
+	git remote add origin <progetto.git>
+ Dove al posto di <progetto.git> metteremo l'indirizzo del progetto.
+ Per ora l'indirizzo del progetto è   git://github.com/nagash91/EDC.git
+
+-Eseguire il comando "git pull origin master" per prelevare il breanch "master" dal progetto "origin" che abbiamo settato precedentemente. A questo punto abbiamo scaricato il progetto in locale.
+
+
+-eseguire il file "install.sh" presente nella cartella ../EDC/dipendenze
+ Richiederà la password di amministratore nella sua esecuzione perchè contiene dei "sudo" al suo interno.
+ Compilerà le dipendenze opportunamente modificate da noi per essere compilate senza problemi su ubuntu 9.10:
+ Pth 2.0.7
+ zlogger 1.1.2
+ polarssl 0.12.1
+ eibnetmux 1.9.14
+
+-Potrebbe dare un errore alla fine perchè tenterà di installare la libreria (CLI) c/c++ per mysql.
+ Quindi se avete synaptics o qualsiasi applicazione che tenta di installare programmi, darà errore.
+ In questo caso eseguire "sudo apt-get install libmysql++-dev"  e "sudo apt-get install libmysqld-dev" 
+
+(probabilmente sono necessarie solo le mysqld, poichè il programma è scritto in C per ora. Con un futuro porting al C++ serviranno le mysql++)
+
+ Potresti non avere neanche il compilatore c++ che potrebbe essere necessario. Nel caso installare g++ con:
+ "sudo apt-get install g++"
+
+-A questo punto recarsi in ../EDC/src/ ed eseguire il comando "make". Dovrebbe compilare con successo e creare il file eseguibile "edc".
+
+
+-L'IDE utilizzato è netBeans 6.8 Installarlo per aprire il progetto con l'IDE
+
+NB: Il pacchetto di eibnetmux è stato modificato per essere compilato sotto ubuntu senza problemi. Il pacchetto originale scaricabile da internet è fatto per un'altra distribuzione linux. Sostanzialmente abbiamo eliminato la clausa -werror poichè su linux la compilazione di eibnetmux genera dei warning e con -werror vengano considerati errori. In questo modo riusciamo a compilare con successo anche se con qualche warning.
