@@ -24,6 +24,7 @@
 
 typedef struct
 {
+    char eibID[30];//Non ancora settabile da linea di comando e da file.
     char eibTarget[37]; // IP:PORT
     char eibUser[50];
     char eibPwd[50];
@@ -37,6 +38,7 @@ typedef struct
 
 void init_EDC_Parameter(EDC_Parameter *param)
 {
+    strcpy(param->eibID, "");
     strcpy(param->dbDatabase, "");
     param->dbPort = 0;
     strcpy(param->dbIP, "");
@@ -51,30 +53,39 @@ void processParameterHelp();
 EDC_Parameter processParameter(int argc, char** argv);
 EDC_Parameter processParameterFile(char* path);
 
-
-int main( int argc, char **argv )
+int main(int argc, char **argv)
 {
     Energia energia;
 
 
-    ENMX_HANDLE     sock_con = 0;
+    ENMX_HANDLE sock_con = 0;
     //unsigned char   conn_state = 0;
-    
-    uint16_t                value_size;
-    struct timeval          tv;
-    struct tm               *ltime;
-    uint16_t                buflen;
-    unsigned char           *buf;
-    CEMIFRAME               *cemiframe;
-    int                     enmx_version;
 
-    int                     total = -1;
-    int                     count = 0;
-    int                     spaces = 1;
+    uint16_t value_size;
+    struct timeval tv;
+    struct tm *ltime;
+    uint16_t buflen;
+    unsigned char *buf;
+    CEMIFRAME *cemiframe;
+    int enmx_version;
+
+    int total = -1;
+    int count = 0;
+    int spaces = 1;
     EDC_Parameter param;
 
+    
+
+
     param = processParameter(argc, argv);
-    if (mysql_library_init(0, NULL, NULL)) //inizializza la CLI di my_sql
+
+    if( strcmp(param.eibID, "") == 0)
+    {
+            strcpy(param.eibID, "EIB");
+    }
+
+
+    if (mysql_library_init(0, NULL, NULL)) //inizializza la CLI di mysql
     {
         printf(NULL, "mysql_library_init() failed");
         return 3;
@@ -121,7 +132,7 @@ int main( int argc, char **argv )
 
 
     //start_db_connection(&conn, param.dbUser,param.dbPwd,param.dbIP, param.dbPort, param.dbDatabase);
-    start_db_connection(&conn, "root","labdomvinci","10.0.0.55", 3306, "konnex");
+    start_db_connection(&conn, param.dbUser,param.dbPwd,param.dbIP, param.dbPort, param.dbDatabase);
 
 
 
@@ -324,6 +335,10 @@ void processParameterHelp()
     puts("-user   dbUsername");
     puts("-pwd    dbPassword");
     puts("-db     databaseName");
+    puts("-eid    eibnetmux_identifier [default = EDC]");
+    puts("-?      Show Help and exit");
+    puts("-f -?   Show Config file help and exit");
+
     puts("\n\nDefault: -f settings.eds");
 }
 
@@ -361,7 +376,36 @@ EDC_Parameter processParameter(int argc, char** argv)
             if( strcmp(argv[i], "-f") == 0)
             {
                 i++;
-                param = processParameterFile(argv[i]);
+                if( strcmp(argv[i],"-?") == 0)
+                {
+                    puts("EDC settings file help:");
+                    puts("Default extension for settings file is .eds");
+                    puts("Replace strings betwen < and > with values:\n\n");
+                    puts("EDC_CONFIG_FILE <fileVersion>");
+                    puts("dbname:  <dbname>");
+                    puts("dbhost:  <dbhost>");
+                    puts("dbport:  <dbport>");
+                    puts("dbuser:  <dbUser>");
+                    puts("dbpwd:   <dbpwd>");
+                    puts("eibpwd:  <eibnetmuxPwd>");
+                    puts("eibuser: <eibnetmuxUser>");
+                    puts("eibtarget:   <eibHost:eibPort>");
+                    puts("\n\nFile example:\n\n");
+                    puts("EDC_CONFIG_FILE 0.1");
+                    puts("dbname:  mydatabase");
+                    puts("dbhost:  10.0.0.10");
+                    puts("dbport:  3306");
+                    puts("dbuser:  root");
+                    puts("dbpwd:   password");
+                    puts("eibpwd:  password");
+                    puts("eibuser: eibroot");
+                    puts("eibtarget:   10.0.0.8:4390");
+                    exit(0);
+                }
+                else
+                {
+                    param = processParameterFile(argv[i]);
+                }
             }
             if( strcmp(argv[i], "-t") == 0)
             {
@@ -408,6 +452,12 @@ EDC_Parameter processParameter(int argc, char** argv)
             {
                 i++;
                 strcpy(param.dbDatabase, argv[i]);
+            }
+
+            else if( strcmp(argv[i], "-eid") == 0)
+            {
+                i++;
+                strcpy(param.eibID, argv[i]);
             }
 
             else if( strcmp(argv[i], "-?") == 0)
@@ -502,7 +552,10 @@ EDC_Parameter processParameterFile(char* path)
             {
                 strcpy( param.eibTarget, buf2);
             }
-
+            else if( strcmp(buf, "eibid:") == 0)
+            {
+                strcpy( param.eibID, buf2);
+            }
             else
             {
                 printf("ERROR WHILE PARSING FILE");

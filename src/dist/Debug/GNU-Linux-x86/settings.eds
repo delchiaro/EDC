@@ -1,10 +1,10 @@
 EDC_CONFIG_FILE 0.1
-dbname: konnex
-dbhost: 10.0.0.55
-dbport: 4300
-dbuser: root
-dbpwd: labdomvinci
+dbname:		konnex
+dbhost:		10.0.0.55
+dbport:		3306
+dbuser:		root
+dbpwd:		labdomvinci  
 
-eibuser: root
-eibpwd: labdomvinci
-eibtarget: 10.0.0.111:4390
+eibuser:	root
+eibpwd:		labdomvinci
+eibtarget:	10.0.0.107:4390
